@@ -7,7 +7,6 @@
   <style>
     :root{
       --bg:#0b0c0e; --card:#121419; --ink:#eaeef3; --muted:#aab3c2; --accent:#5ee6a5; --line:#232731;
-      --danger:#ff6b6b; --warn:#ffd166;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -17,15 +16,11 @@
     .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
     .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
     .grow{flex:1}
-    input[type="date"],input[type="text"],input[type="search"],textarea,button,.pill,select{border:1px solid var(--line);background:#0e1015;color:#eaeef3;padding:12px 14px;border-radius:12px}
+    input,textarea,button,.pill,select{border:1px solid var(--line);background:#0e1015;color:var(--ink);padding:12px 14px;border-radius:12px}
     input[type="text"],input[type="search"],textarea{width:100%}
     input.lg{font-size:1.05rem;padding:14px 16px}
     textarea{min-height:120px;resize:vertical}
     button{cursor:pointer}
-    button.primary{background:linear-gradient(180deg,#19c37d,#0aa56a);border:none;color:#04130b;font-weight:700}
-    button.ghost{background:transparent}
-    button.danger{background:#2a1416;border:1px solid #5a2126;color:#ffb3b8}
-    button.warn{background:#2a2312;border:1px solid #57481a;color:#ffe8a3}
     .toolbar{gap:8px}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:14px}
     .item{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:12px}
@@ -37,19 +32,13 @@
     .split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .hidden{display:none}
     .foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;color:var(--muted);font-size:13px}
-    .right{justify-content:flex-end}
-    .checkall{display:flex;align-items:center;gap:8px}
     .badge{border:1px solid var(--line);padding:2px 8px;border-radius:999px;font-size:12px}
     .hint{font-size:13px;color:var(--muted)}
     .searchWrap{display:flex;gap:8px;align-items:center;min-width:320px}
     .searchWrap button{padding:10px 12px}
-    ol.route{margin:0;padding-left:22px}
-    ol.route li{margin:6px 0}
-    .visit{display:flex;align-items:center;gap:10px}
-    .visit.done span{opacity:.7;text-decoration:line-through}
-    .visit .tick{transform:scale(1.2)}
-    .status{margin:-8px 0 10px 0; padding:8px 12px; border-radius:10px; background:#201a13; border:1px solid #3a2f22; color:#ffedc2; font-size:13px}
-    .ok{background:#132019;border-color:#284a33;color:#c6ffd7}
+    details{border:1px solid var(--line);border-radius:12px;padding:10px;background:#0e1015}
+    details+details{margin-top:10px}
+    summary{cursor:pointer;font-weight:700}
     @media (max-width:860px){.split{grid-template-columns:1fr}}
   </style>
 </head>
@@ -57,17 +46,13 @@
   <div class="wrap">
     <div class="row" style="margin-bottom:16px">
       <h1>Planificador diario de clientes</h1>
-      <span class="badge" id="version">v1.5</span>
+      <span class="badge" id="version">v1.1</span>
       <div class="grow"></div>
-      <button class="ghost" id="toggleTheme" title="Cambiar tema">🌓</button>
     </div>
-
-    <div id="status" class="status">Cargando…</div>
 
     <div class="card">
       <div class="tabs">
         <div class="pill active" data-tab="plan">🗓️ Plan diario</div>
-        <div class="pill" data-tab="ruta">🧭 Ruta del día</div>
         <div class="pill" data-tab="rutas">📦 Rutas predefinidas</div>
         <div class="pill" data-tab="clientes">👥 Clientes</div>
         <div class="pill" data-tab="ayuda">❓ Ayuda</div>
@@ -92,55 +77,24 @@
             <button id="clearSearch" title="Borrar búsqueda">✕</button>
           </div>
 
-          <label class="checkall">
+          <label style="display:flex;align-items:center;gap:8px">
             <input type="checkbox" id="toggleAll"> Seleccionar todos
           </label>
 
-          <select id="selectRuta">
-            <option value="">Rutas predefinidas…</option>
-            <option value="R-1">R-1</option>
-            <option value="R-2">R-2</option>
-            <option value="R-3">R-3</option>
-            <option value="R-4">R-4</option>
-            <option value="R-5">R-5</option>
-          </select>
-          <button id="aplicarRuta">Aplicar</button>
-
-          <button class="primary" id="guardar">Guardar día</button>
-          <button class="warn" id="vaciar">Vaciar día</button>
+          <button id="guardar">Guardar día</button>
+          <button id="vaciar">Vaciar día</button>
           <button id="imprimir">Imprimir</button>
-          <button id="exportar">Exportar</button>
-          <button id="importarBtn">Importar</button>
-          <input type="file" id="importar" accept="application/json" class="hidden" />
-          <button id="forzarRender">Forzar render</button>
-          <button id="resetApp" class="danger">Reset app</button>
         </div>
 
         <div class="foot"><span class="muted">Clientes visibles: <span id="count"></span></span><span class="muted">Los datos se guardan en este navegador.</span></div>
         <div id="lista" class="grid" aria-live="polite"></div>
       </section>
 
-      <!-- RUTA DEL DÍA -->
-      <section id="tab-ruta" class="hidden">
-        <div class="row toolbar">
-          <label>
-            <span class="muted">Fecha</span><br>
-            <input type="date" id="fechaRuta" />
-          </label>
-          <button id="hoyRuta">Hoy</button>
-          <div class="grow"></div>
-          <button id="imprimirRuta">Imprimir ruta</button>
-        </div>
-        <p class="hint">Marca cada visita como <em>hecha</em>. Se guarda por fecha y cliente.</p>
-        <ol class="route" id="rutaLista"></ol>
-      </section>
-
       <!-- RUTAS PREDEFINIDAS -->
       <section id="tab-rutas" class="hidden">
-        <h3>Rutas predefinidas (R-1 a R-5)</h3>
-        <p class="hint">Edita su contenido y aplícalas a cualquier día. Puedes también guardar la selección actual en una ruta. (Las rutas con nombre R-1…R-5 siempre existirán).</p>
-
-        <div id="rutasBox" class="grid"></div>
+        <h3>Rutas predefinidas</h3>
+        <p class="hint">Edita las rutas R-1 a R-5. Escribe un cliente por línea y pulsa <em>Guardar</em>. Puedes <strong>Aplicar</strong> una ruta al día actual.</p>
+        <div id="rutasBox"></div>
       </section>
 
       <!-- CLIENTES -->
@@ -148,11 +102,10 @@
         <div class="split">
           <div>
             <h3>Listado actual</h3>
-            <p class="hint">Este listado se guarda en el navegador. Puedes añadir, borrar o restablecer.</p>
+            <p class="hint">Puedes añadir o borrar clientes. Los cambios se guardan en este navegador.</p>
             <div class="row">
               <input class="grow" type="text" id="nuevoCliente" placeholder="Nombre del nuevo cliente" />
               <button id="addCliente">Añadir</button>
-              <button class="danger" id="resetClientes" title="Restablecer a la lista original">Reset</button>
             </div>
             <div id="clientesList" class="grid" style="margin-top:10px"></div>
           </div>
@@ -162,6 +115,7 @@
             <textarea id="bulk"></textarea>
             <div class="row right">
               <button id="bulkAdd">Añadir en bloque</button>
+              <button id="resetClientes">Resetear a listado original</button>
             </div>
           </div>
         </div>
@@ -174,9 +128,9 @@
           <li>Elige una <strong>fecha</strong> o pulsa <em>Hoy</em>.</li>
           <li>Marca los <strong>clientes</strong> que quieras visitar ese día.</li>
           <li>Pulsa <strong>Guardar día</strong>. ¡Listo!</li>
-          <li>Para usar una <strong>ruta predefinida</strong>, escógela en el desplegable y pulsa <em>Aplicar</em>.</li>
+          <li>Para rutas fijas, edita y aplica tus <strong>R-1…R-5</strong> en la pestaña de Rutas.</li>
         </ol>
-        <p class="hint">Exporta tus datos antes de cambiar de ordenador o borrar la caché.</p>
+        <p class="hint">Truco: filtra por "GOIKO" y usa <em>Seleccionar todos</em> para marcar solo esos.</p>
       </section>
     </div>
 
@@ -187,165 +141,210 @@
   </div>
 
   <script>
-  (function(){
-    var statusEl = document.getElementById('status');
-    function setStatus(msg, ok){ statusEl.className = 'status'+(ok?' ok':''); statusEl.textContent = msg; }
-    function showError(e){ setStatus('⚠️ '+(e && (e.message||e)),''); }
-    window.addEventListener('error', function(e){ showError(e.error||e.message); });
-    window.addEventListener('unhandledrejection', function(e){ showError(e.reason||'Error desconocido'); });
-
-    function todayStr(){ var now=new Date(); var yyyy=now.getFullYear(); var mm=('0'+(now.getMonth()+1)).slice(-2); var dd=('0'+now.getDate()).slice(-2); return yyyy+'-'+mm+'-'+dd; }
-    function getDateFromInput(sel){ var el=document.querySelector(sel); if(!el||!el.value){ if(el) el.value=todayStr(); } var d=new Date(el?el.value:todayStr()); return isNaN(d)? new Date(todayStr()) : d; }
-    function dateKey(d){ var dd=(d instanceof Date&&!isNaN(d))?d:new Date(todayStr()); var yyyy=dd.getFullYear(); var mm=('0'+(dd.getMonth()+1)).slice(-2); var di=('0'+dd.getDate()).slice(-2); return yyyy+'-'+mm+'-'+di; }
-
-    var safeStorage=(function(){ try{ var t='__t__'; localStorage.setItem(t,'1'); localStorage.removeItem(t); return localStorage; }catch(_){ var mem={}; return {getItem:function(k){return mem[k]||null;}, setItem:function(k,v){mem[k]=String(v);}, removeItem:function(k){delete mem[k];}}; }})();
-
-    var DEFAULT_CLIENTES=[
-      "RTE L'ESTONETA","RTE PIPA","CUATRECASAS","SET POINT","MARIMBA","EL PEDREGAL","LES CATIVAS","BAR RESTAURANTE POMA","A PROP TEU","TIENDA RONDA SANT ANTONI","O BURATO BAR","BAR CAFETERIA MARIANA","MANDONI PEDRALBES","TEATRO NACIONAL DE CATALUNYA","RESTAURANT CENT FOCS","HOTEL MESON CASTILLA","BAR RTE LEPANTO","CAFE ILUSIONA BY MUXIA","EL MOLI PAN Y CAFE SANTS","OMBU, RTE","DAMAIA, BAR","EXE RAMBLAS BOQUERIA","PLEASE PLATS","RESTAURANTE HONKAKU II","O CANTO RESTAURANTE","SARA TAPES","HOTEL SB GLOW","TOC HOSTAL GRAN VIA","HOTEL SB ICARIA BARCELONA","CAFETERIA DOMI","TIENDA JOAQUIM VALLS","GOIKO GRILL CARRER CAN SEGALAR","EL FOC DEN CANIGO","GOIKO GRILL GRAN VIA DE LES CORTS","LA FILOMENA BAR","GOIKO GRILL CARRER INDEPENDENCIA","GOIKO GRILL BRUC","GOIKO GRILL C.C. SOM MULTIESPAI","EUROSTARS ANGLI","BAR CAÑAS","GOIKO GRILL PASSEIG SANT JOAN","GARBI","SETEMBRE","LA CASSOLETA","GOIKO GRILL CARRER D'ARIBAU","TIENDA TORRES I BAGES","ATICCO PASSEIG DE GRÀCIA CANTINA","EXE LAIETANA PALACE","TIENDA MERIDIANA II","EUROSTARS CRISTAL PALACE","RIAS DE GALICIA RTE","MIRADOR SANT JUST","IKONIK RAMBLAS","GOIKO MARAGALL","CASA DE TAPAS LA CAÑOTA","GOIKO GRILL LAIETANA","ALTIMA HOSPITALET GRAN VIA","RINCON GALEGO","BAR EUROPA","RESTAURANTE SUKAPA","ANTOTXO","RTE ZHU ZHU","EXE PLAZA CATALUNYA 4","EUROSTARS MONUMENTAL","EUROSTARS MITRE","TIENDA SANT VICENÇ DELS HORTS","FORN VELL INDUSTRIA","FORN VELL CLARET","TIENDA VIA JULIA","VALDAURA","PIPA S CAFETERIA","RESTAURANTE LA GORMANDA","BAR BUC","TOSTA BAR","ADELITA RESTAURANTE","MOLI PAN Y CAFE ZONA FRANCA","LOKAL","BATEA","BAR LOS PINOS 2","TSUKIMI","LA PALMERA","EL MIRALL DELS ENCANTS","LOMO ALTO","HOTEL ORIENTE","HOTEL ARENAS","HOTEL TRES TORRES","ESCAIRON","LA RUTA GALLEGA","TIENDA CLOT","LA BRASA RESTAURANTE","RTE ANCARES","A DUES RODES","CAFETERIA RONDA SANT BOI","TIENDA LES CORTS","LA LLAR DEL MERCAT 2 SANT BOI","HOTEL SB WIN SANT FELIU","LOS 3 ARCOS BAR","RTE MAMETORA","BOEDO","O RINCON GALLEGO MERIDIANA","R.U. COSMOPOLITAN","FRANKFURT TOLIK","CIURIS","CAFETERIA LEROY MERLIN SANT BOI","BAR DE BO","ESCUELA JUDICIAL BCN","O MEU LAR","EL CARQUINYOLI","NON SOLO CREPS","GREENVITA NUMANCIA","K10 SUSHI SANT BOI","EL RACONET D'URGELL","TIENDA EL TALLER SANT BOI","CHALITO BCN.","HOTEL FRONTAIR CONGRESS","CLUB TIRO MONTJUIT","FRANKFURT SANTS","R.U. EMILIE DE VILLENUEVE","SOLUCIONS SOCIALS INSERCIO","ALTIMA SANT BOI","FUNDACIO ASPACE CATALUNYA","GREEN VITA GLORIES","ATICCO PASSEIG DE GRÀCIA OFICINA","70/30","ORDAL","PESSEBRE","BUFFS DE FARINA","TIENDA TALLER VALLDAURA","ARTESANO","HELADERÍA ADRI GELATIAMO"
+    // ======= Semilla desde tu PDF (actualizada) =======
+    var DEFAULT_CLIENTES = [
+      "RTE L'ESTONETA","RTE PIPA","MARIMBA","EL PEDREGAL","LES CATIVAS","BAR RESTAURANTE POMA","A PROP TEU","TIENDA RONDA SANT ANTONI","O BURATO BAR","BAR CAFETERIA MARIANA","MANDONI PEDRALBES","TEATRO NACIONAL DE CATALUNYA","RESTAURANT CENT FOCS","HOTEL MESON CASTILLA","BAR RTE LEPANTO","CAFE ILUSIONA BY MUXIA","EL MOLI PAN Y CAFE SANTS","OMBU,RTE","DAMAIA, BAR","EXE RAMBLAS BOQUERIA","PLEASE PLATS","RESTAURANTE HONKAKU II","O CANTO RESTAURANTE","SARA TAPES","HOTEL SB GLOW","TOC HOSTAL GRAN VIA","HOTEL SB ICARIA BARCELONA","CAFETERIA DOMI","TIENDA JOAQUIM VALLS","GOIKO GRILL CARRER CAN SEGALAR","EL FOC DEN CANIGO","GOIKO GRILL GRAN VIA DE LES CORTS","LA FILOMENA BAR","GOIKO GRILL CARRER INDEPENDENCIA","GOIKO GRILL BRUC","GOIKO GRILL C.C. SOM MULTIESPAI","EUROSTARS ANGLI","BAR CAÑAS","GOIKO GRILL PASSEIG SANT JOAN","GARBI","SETEMBRE","LA CASSOLETA","GOIKO GRILL CARRER D'ARIBAU","TIENDA TORRES I BAGES","ATICCO PASSEIG DE GRÀCIA CANTINA","EXE LAIETANA PALACE","TIENDA MERIDIANA II","EUROSTARS CRISTAL PALACE","RIAS DE GALICIA RTE","MIRADOR SANT JUST","IKONIK RAMBLAS","GOIKO MARAGALL","CASA DE TAPAS LA CAÑOTA","GOIKO GRILL LAIETANA","ALTIMA HOSPITALET GRAN VIA","RINCON GALEGO","BAR EUROPA","RESTAURANTE SUKAPA","ANTOTXO","RTE ZHU ZHU","EXE PLAZA CATALUNYA 4","EUROSTARS MONUMENTAL","EUROSTARS MITRE","TIENDA SANT VICENÇ DELS HORTS","FORN VELL INDUSTRIA","FORN VELL CLARET","TIENDA VIA JULIA","VALDAURA","PIPA S CAFETERIA","RESTAURANTE LA GORMANDA","BAR BUC","TOSTA BAR","ADELITA RESTAURANTE","MOLI PAN Y CAFE ZONA FRANCA","LOKAL","BATEA","BAR LOS PINOS 2","TSUKIMI","LA PALMERA","EL MIRALL DELS ENCANTS","LOMO ALTO","HOTEL ORIENTE","HOTEL ARENAS","HOTEL TRES TORRES","ESCAIRON","LA RUTA GALLEGA","TIENDA CLOT","LA BRASA RESTAURANTE","RTE ANCARES","A DUES RODES","CAFETERIA RONDA SANT BOI","TIENDA LES CORTS","LA LLAR DEL MERCAT 2 SANT BOI","HOTEL SB WIN SANT FELIU","LOS 3 ARCOS BAR","RTE MAMETORA","BOEDO","O RINCON GALLEGO MERIDIANA","R.U. COSMOPOLITAN","FRANKFURT TOLIK","CIURIS","CAFETERIA LEROY MERLIN SANT BOI","BAR DE BO","ESCUELA JUDICIAL BCN","O MEU LAR","EL CARQUINYOLI","NON SOLO CREPS","GREENVITA NUMANCIA","K10 SUSHI SANT BOI","EL RACONET D'URGELL","TIENDA EL TALLER SANT BOI","CHALITO BCN.","HOTEL FRONTAIR CONGRESS","CLUB TIRO MONTJUIT","FRANKFURT SANTS","R.U. EMILIE DE VILLENUEVE","SOLUCIONS SOCIALS INSERCIO","ALTIMA SANT BOI","FUNDACIO ASPACE CATALUNYA","GREEN VITA GLORIES","ATICCO PASSEIG DE GRÀCIA OFICINA","70/30","ORDAL","PESSEBRE","BUFFS DE FARINA","TIENDA TALLER VALLDAURA","ARTESANO","HELADERÍA ADRI GELATIAMO","CUATRECASAS","SET POINT"
     ];
 
-    var DEFAULT_RUTAS={'R-1':[],'R-2':[],'R-3':[],'R-4':[],'R-5':[]};
-    var KEYS={clientes:'clientes',planes:'planes',rutas:'rutasPredef',hechos:'visitasHechas',theme:'theme'};
+    // ======= Storage =======
+    var LS_KEYS = { clientes:'clientes', planes:'planes', rutas:'rutasPredef' };
+    function load(key, fb){ try{ var raw=localStorage.getItem(key); return raw? JSON.parse(raw) : fb; }catch(_){ return fb; } }
+    function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(_){}}
 
-    function load(key, fb){ try{ var raw=safeStorage.getItem(key); return raw? JSON.parse(raw) : fb; }catch(_){ return fb; } }
-    function save(key, val){ try{ safeStorage.setItem(key, JSON.stringify(val)); }catch(_){} }
+    function dateKey(d){ return d.toISOString().slice(0,10); }
+    function todayStr(){ var now=new Date(); var yyyy=now.getFullYear(); var mm=('0'+(now.getMonth()+1)).slice(-2); var dd=('0'+now.getDate()).slice(-2); return yyyy+'-'+mm+'-'+dd; }
 
-    var CLIENTES = load(KEYS.clientes, DEFAULT_CLIENTES.slice());
-    if(!CLIENTES || !CLIENTES.length){ CLIENTES = DEFAULT_CLIENTES.slice(); save(KEYS.clientes, CLIENTES); }
-    var PLANES   = load(KEYS.planes, {});
-    var RUTAS    = Object.assign({}, DEFAULT_RUTAS, load(KEYS.rutas, {}));
-    var HECHOS   = load(KEYS.hechos, {});
+    var CLIENTES = load(LS_KEYS.clientes, DEFAULT_CLIENTES.slice());
+    var PLANES   = load(LS_KEYS.planes, {});
+    var RUTAS    = load(LS_KEYS.rutas, { 'R-1':[], 'R-2':[], 'R-3':[], 'R-4':[], 'R-5':[] });
 
-    function qs(sel){ return document.querySelector(sel); }
-    function qsa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+    function $(sel){ return document.querySelector(sel); }
+    function $all(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+
+    // ======= Tabs =======
+    $all('.pill').forEach(function(p){ p.addEventListener('click', function(){
+      $all('.pill').forEach(function(x){ x.classList.remove('active'); });
+      p.classList.add('active');
+      var tab = p.getAttribute('data-tab');
+      $('#tab-plan').classList.toggle('hidden', tab!=='plan');
+      $('#tab-rutas').classList.toggle('hidden', tab!=='rutas');
+      $('#tab-clientes').classList.toggle('hidden', tab!=='clientes');
+      $('#tab-ayuda').classList.toggle('hidden', tab!=='ayuda');
+      if(tab==='rutas') renderRutas();
+    }); });
+
+    // ======= Plan diario =======
+    function setToday(){ $('#fecha').value = todayStr(); }
+    if(!$('#fecha').value) setToday();
 
     function renderLista(){
-      var cont = qs('#lista'); if(!cont) return;
-      var filtro = (qs('#buscador') && qs('#buscador').value || '').toLowerCase();
-      var key = dateKey(getDateFromInput('#fecha'));
+      var cont = $('#lista');
+      var filtro = ($('#buscador').value||'').toLowerCase();
+      var key = dateKey(new Date($('#fecha').value));
       var seleccionados = new Set(PLANES[key]||[]);
-      var visibles = CLIENTES.filter(function(c){ return c.toLowerCase().indexOf(filtro) !== -1; });
-      cont.innerHTML='';
-      if(visibles.length===0){
-        var empty=document.createElement('div'); empty.className='item'; empty.innerHTML='<div class="muted">No hay clientes que coincidan con la búsqueda.</div>'; cont.appendChild(empty);
-      }
+      var visibles = CLIENTES.filter(function(c){ return c.toLowerCase().indexOf(filtro)!==-1; });
+      cont.innerHTML = '';
       visibles.forEach(function(nombre){
-        var id='c-'+nombre.replace(/[^a-z0-9]+/gi,'-');
-        var div=document.createElement('label'); div.className='item';
-        div.innerHTML='<input type="checkbox" id="'+id+'"> <div><div><strong>'+nombre+'</strong></div><div class="muted">Pulsa para incluir en el plan del día.</div></div>';
-        var chk=div.querySelector('input'); chk.checked = seleccionados.has(nombre);
+        var id = 'c-'+nombre.replace(/[^a-z0-9]+/gi,'-');
+        var div = document.createElement('label');
+        div.className = 'item';
+        div.innerHTML = '<input type="checkbox" id="'+id+'">'+
+          '<div><div><strong>'+nombre+'</strong></div><div class="muted">Pulsa para incluir en el plan del día.</div></div>';
+        var chk = div.querySelector('input');
+        chk.checked = seleccionados.has(nombre);
         chk.addEventListener('change', function(){
           if(chk.checked){ seleccionados.add(nombre); } else { seleccionados.delete(nombre); }
-          PLANES[key] = Array.from(seleccionados); save(KEYS.planes, PLANES); updateToggleAll();
+          PLANES[key] = Array.from(seleccionados);
+          save(LS_KEYS.planes, PLANES);
+          updateToggleAll();
         });
         cont.appendChild(div);
       });
-      var cnt=qs('#count'); if(cnt) cnt.textContent = visibles.length+' / '+CLIENTES.length;
+      $('#count').textContent = visibles.length + ' / ' + CLIENTES.length;
       updateToggleAll();
     }
 
     function updateToggleAll(){
-      var key=dateKey(getDateFromInput('#fecha'));
-      var seleccionados=new Set(PLANES[key]||[]);
-      var filtro=(qs('#buscador') && qs('#buscador').value || '').toLowerCase();
-      var visibles=CLIENTES.filter(function(c){ return c.toLowerCase().indexOf(filtro)!==-1; });
+      var key = dateKey(new Date($('#fecha').value));
+      var seleccionados = new Set(PLANES[key]||[]);
+      var filtro = ($('#buscador').value||'').toLowerCase();
+      var visibles = CLIENTES.filter(function(c){ return c.toLowerCase().indexOf(filtro)!==-1; });
       var allSelected = visibles.length>0 && visibles.every(function(c){ return seleccionados.has(c); });
-      var t=qs('#toggleAll'); if(t) t.checked=allSelected;
+      $('#toggleAll').checked = allSelected;
     }
 
-    function renderRutaDia(){
-      var fechaRuta=getDateFromInput('#fechaRuta');
-      var key=dateKey(fechaRuta);
-      var lista=PLANES[key]||[];
-      var hechos=HECHOS[key]||{};
-      var ol=qs('#rutaLista'); if(!ol) return;
-      ol.innerHTML='';
-      if(!lista.length){ var li=document.createElement('li'); li.innerHTML='<span class="muted">(No hay clientes seleccionados para este día)</span>'; ol.appendChild(li); return; }
-      lista.forEach(function(c){
-        var li=document.createElement('li'); var checked=!!hechos[c];
-        li.innerHTML='<label class="visit '+(checked?'done':'')+'"><input class="tick" type="checkbox" '+(checked?'checked':'')+'><span>'+c+'</span></label>';
-        var cb=li.querySelector('input');
-        cb.addEventListener('change', function(){
-          var k=dateKey(getDateFromInput('#fechaRuta'));
-          if(!HECHOS[k]) HECHOS[k]={}; HECHOS[k][c]=cb.checked; save(KEYS.hechos, HECHOS);
-          li.querySelector('.visit').classList.toggle('done', cb.checked);
+    $('#fecha').addEventListener('change', renderLista);
+    $('#hoy').addEventListener('click', function(){ setToday(); renderLista(); });
+    $('#buscador').addEventListener('input', renderLista);
+    $('#clearSearch').addEventListener('click', function(){ $('#buscador').value=''; renderLista(); $('#buscador').focus(); });
+
+    $('#toggleAll').addEventListener('change', function(e){
+      var key = dateKey(new Date($('#fecha').value));
+      var filtro = ($('#buscador').value||'').toLowerCase();
+      var visibles = CLIENTES.filter(function(c){ return c.toLowerCase().indexOf(filtro)!==-1; });
+      if(e.target.checked){
+        var set = new Set(PLANES[key]||[]);
+        visibles.forEach(function(v){ set.add(v); });
+        PLANES[key] = Array.from(set);
+      } else {
+        var remain = new Set(PLANES[key]||[]);
+        visibles.forEach(function(v){ remain.delete(v); });
+        PLANES[key] = Array.from(remain);
+      }
+      save(LS_KEYS.planes, PLANES);
+      renderLista();
+    });
+
+    $('#guardar').addEventListener('click', function(){ alert('¡Día guardado!'); });
+    $('#vaciar').addEventListener('click', function(){
+      if(confirm('¿Seguro que quieres vaciar la selección de este día?')){
+        var key = dateKey(new Date($('#fecha').value));
+        PLANES[key] = [];
+        save(LS_KEYS.planes, PLANES);
+        renderLista();
+      }
+    });
+    $('#imprimir').addEventListener('click', function(){ window.print(); });
+
+    // ======= Clientes (admin) =======
+    function renderClientesAdmin(){
+      var box = $('#clientesList'); box.innerHTML = '';
+      CLIENTES.forEach(function(c,i){
+        var row = document.createElement('div'); row.className='item';
+        row.innerHTML = '<div class="grow"><strong>'+c+'</strong></div><button data-del="'+i+'">Eliminar</button>';
+        row.querySelector('button').addEventListener('click', function(){
+          if(confirm('¿Eliminar "'+c+'" del listado?')){
+            CLIENTES.splice(i,1); save(LS_KEYS.clientes, CLIENTES); renderClientesAdmin(); renderLista();
+          }
         });
-        ol.appendChild(li);
+        box.appendChild(row);
       });
     }
 
+    $('#addCliente').addEventListener('click', function(){
+      var v = ($('#nuevoCliente').value||'').trim(); if(!v) return;
+      if(CLIENTES.indexOf(v)===-1) CLIENTES.push(v);
+      CLIENTES = Array.from(new Set(CLIENTES)).sort(function(a,b){ return a.localeCompare(b); });
+      save(LS_KEYS.clientes, CLIENTES);
+      $('#nuevoCliente').value='';
+      renderClientesAdmin();
+      renderLista();
+    });
+
+    $('#bulkAdd').addEventListener('click', function(){
+      var lines = ($('#bulk').value||'').split(/
+?
+/).map(function(s){return s.trim();}).filter(Boolean);
+      if(!lines.length) return;
+      CLIENTES = Array.from(new Set(CLIENTES.concat(lines))).sort(function(a,b){ return a.localeCompare(b); });
+      save(LS_KEYS.clientes, CLIENTES);
+      $('#bulk').value='';
+      renderClientesAdmin();
+      renderLista();
+    });
+
+    $('#resetClientes').addEventListener('click', function(){
+      if(confirm('¿Restablecer el listado al original?')){
+        CLIENTES = DEFAULT_CLIENTES.slice(); save(LS_KEYS.clientes, CLIENTES); renderClientesAdmin(); renderLista();
+      }
+    });
+
+    // ======= Rutas predefinidas =======
     function renderRutas(){
-      var box=qs('#rutasBox'); if(!box) return; box.innerHTML='';
+      var box = $('#rutasBox'); box.innerHTML='';
       ['R-1','R-2','R-3','R-4','R-5'].forEach(function(k){
-        var arr=RUTAS[k]||[];
-        var div=document.createElement('div'); div.className='item';
-        div.innerHTML = ''+
-          '<div class="grow">'+
-          '  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><strong>'+k+'</strong> <span class="muted">('+arr.length+' clientes)</span></div>'+
-          '  <details style="margin-top:6px"><summary>Ver lista</summary><ul style="margin:6px 0 0 18px; padding:0">'+(arr.length? arr.map(function(c){return '<li>'+c+'</li>';}).join(''):'<li class="muted">(vacía)</li>')+'</ul></details>'+
-          '  <details style="margin-top:6px"><summary>Editar</summary><p class="hint">Pega uno por línea. Se eliminan duplicados y nombres vacíos.</p><textarea data-edit="'+k+'">'+arr.join('
-')+'</textarea><div class="row right" style="margin-top:6px"><button data-save="'+k+'">Guardar cambios</button><button class="danger" data-clear="'+k+'">Vaciar</button><button class="warn" data-resetk="'+k+'">Reset (dejar vacía)</button></div></details>'+
-          '</div>'+
-          '<div style="display:flex; flex-direction:column; gap:8px; min-width:180px">'+
-          '  <button data-apply="'+k+'">Aplicar al día ▶</button>'+
-          '  <button data-store="'+k+'">Guardar selección actual en '+k+'</button>'+
-          '</div>';
-        box.appendChild(div);
+        var arr = RUTAS[k]||[];
+        var det = document.createElement('details');
+        det.innerHTML = '<summary>'+k+' <span class="muted">('+arr.length+' clientes)</span></summary>'+
+          '<div style="margin-top:8px">'+
+          '<p class="hint">Edita (uno por línea):</p>'+
+          '<textarea id="ta-'+k+'">'+arr.join('
+')+'</textarea>'+
+          '<div class="row right" style="margin-top:8px">'+
+          '<button data-save="'+k+'">Guardar</button>'+ 
+          '<button data-apply="'+k+'">Aplicar al día</button>'+ 
+          '<button data-clear="'+k+'">Vaciar</button>'+ 
+          '</div></div>';
+        box.appendChild(det);
       });
-      qsa('[data-apply]').forEach(function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-apply'); var key=dateKey(getDateFromInput('#fecha')); PLANES[key]=(RUTAS[k]||[]).filter(function(c){return CLIENTES.indexOf(c)!==-1;}); save(KEYS.planes, PLANES); renderLista(); alert('Ruta '+k+' aplicada al día.'); }); });
-      qsa('[data-store]').forEach(function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-store'); var key=dateKey(getDateFromInput('#fecha')); var lista=PLANES[key]||[]; RUTAS[k]=lista.filter(function(c){return CLIENTES.indexOf(c)!==-1;}); save(KEYS.rutas, RUTAS); renderRutas(); alert('Selección actual guardada en '+k+'.'); }); });
-      qsa('[data-save]').forEach(function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-save'); var ta=qs('textarea[data-edit="'+k+'"]'); var lines=(ta && ta.value || '').split(/
+
+      // Guardar
+      $all('[data-save]').forEach(function(btn){ btn.addEventListener('click', function(){
+        var k = btn.getAttribute('data-save');
+        var ta = document.getElementById('ta-'+k);
+        var lines = (ta.value||'').split(/
 ?
-/).map(function(s){return s.trim();}).filter(Boolean); var set={}; var out=[]; lines.forEach(function(x){ if(!set[x]){ set[x]=1; out.push(x); } }); RUTAS[k]=out.filter(function(c){return CLIENTES.indexOf(c)!==-1;}); save(KEYS.rutas, RUTAS); renderRutas(); alert('Ruta '+k+' actualizada.'); }); });
-      qsa('[data-clear]').forEach(function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-clear'); if(confirm('¿Vaciar por completo la ruta '+k+'?')){ RUTAS[k]=[]; save(KEYS.rutas, RUTAS); renderRutas(); } }); });
-      qsa('[data-resetk]').forEach(function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-resetk'); if(confirm('Esto deja la ruta '+k+' vacía (predefinida existe, pero sin clientes). ¿Continuar?')){ RUTAS[k]=[]; save(KEYS.rutas, RUTAS); renderRutas(); } }); });
+/).map(function(s){return s.trim();}).filter(Boolean);
+        // quitamos duplicados y filtramos por clientes existentes
+        var uniq = Array.from(new Set(lines)).filter(function(c){ return CLIENTES.indexOf(c)!==-1; });
+        RUTAS[k] = uniq; save(LS_KEYS.rutas, RUTAS);
+        renderRutas();
+        alert('Ruta '+k+' guardada.');
+      }); });
+
+      // Aplicar
+      $all('[data-apply]').forEach(function(btn){ btn.addEventListener('click', function(){
+        var k = btn.getAttribute('data-apply');
+        var key = dateKey(new Date($('#fecha').value));
+        PLANES[key] = (RUTAS[k]||[]).slice();
+        save(LS_KEYS.planes, PLANES);
+        renderLista();
+        alert('Ruta '+k+' aplicada al día.');
+      }); });
+
+      // Vaciar ruta
+      $all('[data-clear]').forEach(function(btn){ btn.addEventListener('click', function(){
+        var k = btn.getAttribute('data-clear');
+        if(confirm('¿Vaciar por completo la ruta '+k+'?')){
+          RUTAS[k] = []; save(LS_KEYS.rutas, RUTAS); renderRutas();
+        }
+      }); });
     }
 
-    function setupTabs(){
-      qsa('.pill').forEach(function(p){ p.addEventListener('click', function(){ qsa('.pill').forEach(function(x){ x.classList.remove('active'); }); p.classList.add('active'); var tab=p.getAttribute('data-tab'); qs('#tab-plan').classList.toggle('hidden', tab!=='plan'); qs('#tab-ruta').classList.toggle('hidden', tab!=='ruta'); qs('#tab-rutas').classList.toggle('hidden', tab!=='rutas'); qs('#tab-clientes').classList.toggle('hidden', tab!=='clientes'); qs('#tab-ayuda').classList.toggle('hidden', tab!=='ayuda'); if(tab==='ruta'){ renderRutaDia(); } if(tab==='rutas'){ renderRutas(); } }); });
-    }
-
-    function setupPlanEvents(){
-      if(qs('#fecha')) qs('#fecha').addEventListener('change', function(){ renderLista(); syncRutaFecha(); });
-      if(qs('#hoy')) qs('#hoy').addEventListener('click', function(){ qs('#fecha').value=todayStr(); renderLista(); syncRutaFecha(); });
-      if(qs('#buscador')) qs('#buscador').addEventListener('input', renderLista);
-      if(qs('#clearSearch')) qs('#clearSearch').addEventListener('click', function(){ qs('#buscador').value=''; renderLista(); qs('#buscador').focus(); });
-      if(qs('#toggleAll')) qs('#toggleAll').addEventListener('change', function(e){ var key=dateKey(getDateFromInput('#fecha')); var filtro=(qs('#buscador')&&qs('#buscador').value||'').toLowerCase(); var visibles=CLIENTES.filter(function(c){return c.toLowerCase().indexOf(filtro)!==-1;}); if(e.target.checked){ var set=new Set(PLANES[key]||[]); visibles.forEach(function(v){ set.add(v); }); PLANES[key]=Array.from(set);} else { var remain=new Set(PLANES[key]||[]); visibles.forEach(function(v){ remain.delete(v); }); PLANES[key]=Array.from(remain);} save(KEYS.planes, PLANES); renderLista(); });
-      if(qs('#guardar')) qs('#guardar').addEventListener('click', function(){ alert('¡Día guardado!'); });
-      if(qs('#vaciar')) qs('#vaciar').addEventListener('click', function(){ if(confirm('¿Seguro que quieres vaciar la selección de este día?')){ var key=dateKey(getDateFromInput('#fecha')); PLANES[key]=[]; save(KEYS.planes, PLANES); delete HECHOS[key]; save(KEYS.hechos, HECHOS); renderLista(); }});
-      if(qs('#imprimir')) qs('#imprimir').addEventListener('click', function(){ window.print(); });
-      if(qs('#exportar')) qs('#exportar').addEventListener('click', function(){ var data={clientes:CLIENTES,planes:PLANES,rutas:RUTAS,hechos:HECHOS}; var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='planificador_clientes.json'; a.click(); URL.revokeObjectURL(a.href); });
-      if(qs('#importarBtn')) qs('#importarBtn').addEventListener('click', function(){ qs('#importar').click(); });
-      if(qs('#importar')) qs('#importar').addEventListener('change', function(e){ var f=e.target.files[0]; if(!f) return; var r=new FileReader(); r.onload=function(){ try{ var data=JSON.parse(r.result); if(Array.isArray(data.clientes)){ CLIENTES=Array.from(new Set(data.clientes)); save(KEYS.clientes, CLIENTES); } if(data.planes && typeof data.planes==='object'){ PLANES=data.planes; save(KEYS.planes, PLANES); } if(data.rutas && typeof data.rutas==='object'){ RUTAS=Object.assign({}, DEFAULT_RUTAS, data.rutas); save(KEYS.rutas, RUTAS); } if(data.hechos && typeof data.hechos==='object'){ HECHOS=data.hechos; save(KEYS.hechos, HECHOS); } renderClientesAdmin(); renderLista(); renderRutas(); alert('Datos importados correctamente.'); }catch(err){ alert('Archivo no válido.'); } }; r.readAsText(f); e.target.value=''; });
-      if(qs('#aplicarRuta')) qs('#aplicarRuta').addEventListener('click', function(){ var sel=(qs('#selectRuta') && qs('#selectRuta').value) || ''; if(!sel) return alert('Elige una ruta predefinida.'); var key=dateKey(getDateFromInput('#fecha')); PLANES[key]=Array.from(new Set(RUTAS[sel]||[])).filter(function(c){return CLIENTES.indexOf(c)!==-1;}); save(KEYS.planes, PLANES); renderLista(); alert('Ruta '+sel+' aplicada al día.'); });
-      if(qs('#forzarRender')) qs('#forzarRender').addEventListener('click', function(){ try{ renderLista(); renderRutaDia(); renderRutas(); setStatus('Render forzado OK', true);}catch(e){ showError(e); }});
-      if(qs('#resetApp')) qs('#resetApp').addEventListener('click', function(){ if(confirm('Esto borra datos guardados en este navegador (clientes, planes, rutas, hechos). ¿Seguro?')){ try{ safeStorage.removeItem(KEYS.clientes); safeStorage.removeItem(KEYS.planes); safeStorage.removeItem(KEYS.rutas); safeStorage.removeItem(KEYS.hechos); location.reload(); }catch(_){ location.reload(); } } });
-    }
-
-    function renderClientesAdmin(){ var box=qs('#clientesList'); if(!box) return; box.innerHTML=''; CLIENTES.forEach(function(c,i){ var row=document.createElement('div'); row.className='item'; row.innerHTML='<div class="grow"><strong>'+c+'</strong></div><button class="danger" title="Eliminar">✕</button>'; row.querySelector('button').addEventListener('click', function(){ if(confirm('¿Eliminar "'+c+'" del listado?')){ CLIENTES.splice(i,1); save(KEYS.clientes, CLIENTES); renderClientesAdmin(); renderLista(); } }); box.appendChild(row); }); }
-
-    function setupClientes(){ if(qs('#addCliente')) qs('#addCliente').addEventListener('click', function(){ var v=(qs('#nuevoCliente')&&qs('#nuevoCliente').value||'').trim(); if(!v) return; if(CLIENTES.indexOf(v)===-1) CLIENTES.push(v); CLIENTES=Array.from(new Set(CLIENTES)).sort(function(a,b){ return a.localeCompare(b); }); save(KEYS.clientes, CLIENTES); qs('#nuevoCliente').value=''; renderClientesAdmin(); renderLista(); }); if(qs('#bulkAdd')) qs('#bulkAdd').addEventListener('click', function(){ var lines=(qs('#bulk')&&qs('#bulk').value||'').split(/
-?
-/).map(function(s){return s.trim();}).filter(Boolean); if(!lines.length) return; CLIENTES=Array.from(new Set(CLIENTES.concat(lines))).sort(function(a,b){ return a.localeCompare(b); }); save(KEYS.clientes, CLIENTES); qs('#bulk').value=''; renderClientesAdmin(); renderLista(); }); if(qs('#resetClientes')) qs('#resetClientes').addEventListener('click', function(){ if(confirm('¿Restablecer el listado a la versión original?')){ CLIENTES=DEFAULT_CLIENTES.slice(); save(KEYS.clientes, CLIENTES); renderClientesAdmin(); renderLista(); } }); }
-
-    function syncRutaFecha(){ var f=qs('#fecha'); var fr=qs('#fechaRuta'); if(f && fr){ fr.value=f.value; if(!qs('#tab-ruta').classList.contains('hidden')) renderRutaDia(); } }
-
-    function setupRuta(){ if(qs('#fechaRuta')) qs('#fechaRuta').addEventListener('change', function(){ var fr=qs('#fechaRuta'); var f=qs('#fecha'); if(f&&fr){ f.value=fr.value; } renderLista(); renderRutaDia(); }); if(qs('#hoyRuta')) qs('#hoyRuta').addEventListener('click', function(){ var fr=qs('#fechaRuta'); if(fr){ fr.value=todayStr(); var f=qs('#fecha'); if(f) f.value=fr.value; } renderLista(); renderRutaDia(); }); if(qs('#imprimirRuta')) qs('#imprimirRuta').addEventListener('click', function(){ window.print(); }); }
-
-    function setupTheme(){ var mode = (safeStorage.getItem(KEYS.theme)||'dark'); setTheme(mode); var btn=qs('#toggleTheme'); if(btn) btn.addEventListener('click', function(){ var cur=(safeStorage.getItem(KEYS.theme)||'dark'); setTheme(cur==='light'?'dark':'light'); }); }
-    function setTheme(mode){ if(mode==='light'){ document.documentElement.style.setProperty('--bg','#f7f8fb'); document.documentElement.style.setProperty('--card','#ffffff'); document.documentElement.style.setProperty('--ink','#0b0c0e'); document.documentElement.style.setProperty('--muted','#4a5568'); document.documentElement.style.setProperty('--line','#e6e8ee'); } else { document.documentElement.removeAttribute('style'); } try{ safeStorage.setItem(KEYS.theme, mode); }catch(_){} }
-
-    function init(){ try{
-      if(qs('#fecha') && !qs('#fecha').value) qs('#fecha').value=todayStr();
-      if(qs('#fechaRuta') && !qs('#fechaRuta').value) qs('#fechaRuta').value=qs('#fecha')?qs('#fecha').value:todayStr();
-      setupTheme(); setupTabs(); setupPlanEvents(); setupClientes(); setupRuta();
-      renderClientesAdmin(); renderLista(); renderRutas(); setStatus('Listo ✅', true);
-    }catch(e){ showError(e); }
-    }
-
-    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
-  })();
+    // ======= Init =======
+    renderClientesAdmin();
+    renderLista();
+    renderRutas();
   </script>
 </body>
 </html>
-
