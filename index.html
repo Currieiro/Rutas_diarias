@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Rutas de Clientes</title>
+<meta name="apple-mobile-web-app-capable" content="yes" />
 <style>
   :root { --gap:14px; --pad:14px; --radius:16px; --font:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
   * { box-sizing: border-box; }
-  body { font-family: var(--font); margin: 0; background: #f6f7f9; color:#222; }
-  header { position: sticky; top:0; background: white; padding: var(--pad); box-shadow: 0 2px 10px rgba(0,0,0,.06); z-index: 2; }
-  h1 { font-size: 18px; margin: 0 0 6px; }
+  body { font-family: var(--font); margin: 0; background:#f6f7f9; color:#222; }
+  header { position: sticky; top:0; background:#fff; padding: var(--pad); box-shadow: 0 2px 10px rgba(0,0,0,.06); z-index: 2; }
+  h1 { font-size: 18px; margin: 0 0 8px; }
   .row { display:flex; gap: var(--gap); align-items: center; flex-wrap: wrap; }
-  select, input, button, textarea { font-size: 16px; } /* iPhone friendly */
+  select, input, button, textarea { font-size:16px; }
   select, input[type="text"], textarea {
     width: 100%; padding:12px; border:1px solid #d8dbe2; border-radius: var(--radius); background:#fff;
   }
@@ -23,54 +24,85 @@
   button.warn { background:#ff3b30; }
   main { padding: var(--pad); }
   .card {
-    background: white; border:1px solid #e8ebf2; border-radius: var(--radius); padding: var(--pad);
+    background:#fff; border:1px solid #e8ebf2; border-radius: var(--radius); padding: var(--pad);
     box-shadow: 0 6px 24px rgba(0,0,0,.04);
   }
   ul { list-style: none; padding:0; margin:0; }
   li {
-    display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #edf0f6; border-radius:12px; margin-bottom:10px;
-    touch-action: manipulation;
+    display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #edf0f6;
+    border-radius:12px; margin-bottom:10px; touch-action: manipulation;
   }
   li.done { opacity:.65; text-decoration: line-through; }
   .toolbar { display:flex; gap:var(--gap); flex-wrap: wrap; margin-top: var(--gap); }
   .muted { color:#6b7280; font-size: 13px; }
-  .editor { margin-top: var(--gap); display:none; }
   .badge { background:#eef4ff; color:#0a7cff; font-weight:600; padding: 6px 10px; border-radius:999px; font-size: 12px; }
   .pill { background:#f1f5f9; border-radius:999px; padding: 3px 8px; font-size:12px; }
   .grid { display:grid; gap: var(--gap); }
   .grid.cols-2 { grid-template-columns: 1fr 1fr; }
-  .danger-zone { border-top:1px dashed #e5e7eb; margin-top: var(--gap); padding-top: var(--gap); }
   .footer-note { padding: var(--pad); color:#6b7280; font-size:12px; text-align:center; }
+  .row-inline { display:flex; gap:10px; align-items:center; }
+  .grow { flex:1; }
+  @media (prefers-color-scheme: dark) {
+    body{ background:#0b0c0e; color:#e5e7eb; }
+    header, .card { background:#111318; border-color:#23262d; }
+    select, input[type="text"], textarea { background:#0b0c0e; color:#e5e7eb; border-color:#23262d; }
+    button.secondary { background:#1b1f26; color:#e5e7eb; }
+    li { border-color:#23262d; }
+  }
 </style>
 </head>
 <body>
   <header>
     <h1>Rutas de Clientes <span class="badge">offline</span></h1>
+
     <div class="row">
-      <label class="pill" for="rutaSelect">Ruta</label>
-      <select id="rutaSelect" aria-label="Selecciona una ruta">
+      <label class="pill" for="rutaSelect">Vista</label>
+      <select id="rutaSelect" aria-label="Selecciona una vista/ruta">
         <option value="Lunes">Lunes</option>
         <option value="Martes">Martes</option>
         <option value="Miércoles">Miércoles</option>
         <option value="Jueves">Jueves</option>
         <option value="Viernes">Viernes</option>
+        <option value="__ALL__">Todos (catálogo)</option>
       </select>
-      <div class="toolbar">
+
+      <input id="searchBox" type="text" placeholder="Buscar cliente..." aria-label="Buscar cliente" />
+
+      <div id="toolbarRutas" class="toolbar">
         <button id="btnEditar" class="secondary">Editar rutas</button>
         <button id="btnResetRuta" class="secondary">Reiniciar visitas de esta ruta</button>
         <button id="btnResetTodas" class="secondary">Reiniciar TODAS las visitas</button>
+      </div>
+
+      <!-- Barra de destino cuando estamos en la vista 'Todos' -->
+      <div id="toolbarTodos" class="toolbar" style="display:none;">
+        <div class="row-inline grow">
+          <span class="pill">Añadir a:</span>
+          <select id="targetRoute" class="grow" aria-label="Ruta destino para añadir">
+            <option value="Lunes">Lunes</option>
+            <option value="Martes">Martes</option>
+            <option value="Miércoles">Miércoles</option>
+            <option value="Jueves">Jueves</option>
+            <option value="Viernes">Viernes</option>
+          </select>
+        </div>
+        <button id="btnAddAllFiltered" class="secondary">Añadir todos (filtrados)</button>
+        <button id="btnRemoveAllFiltered" class="secondary">Quitar todos (filtrados)</button>
       </div>
     </div>
   </header>
 
   <main>
     <section id="lista" class="card">
-      <h2 style="margin:0 0 10px;">Clientes de <span id="rutaTitulo">Lunes</span></h2>
+      <h2 style="margin:0 0 10px;">
+        <span id="vistaTitulo">Lunes</span>
+      </h2>
       <ul id="clientesUl" aria-live="polite"></ul>
-      <p id="vacioMsg" class="muted" style="display:none;">No hay clientes en esta ruta. Pulsa <b>Editar rutas</b> para añadir.</p>
+      <p id="vacioMsg" class="muted" style="display:none;">No hay clientes para mostrar.</p>
     </section>
 
-    <section id="editor" class="card editor" aria-hidden="true">
+    <!-- Editor simple para añadir/eliminar en la ruta actual -->
+    <section id="editor" class="card" aria-hidden="true" style="display:none;">
       <h3 style="margin:0 0 10px;">Editar <span id="rutaEditTitulo">Lunes</span></h3>
       <div class="grid">
         <input id="nuevoCliente" type="text" placeholder="Nombre del cliente (ej. BAR PEPE)">
@@ -81,24 +113,20 @@
       </div>
       <ul id="editorUl" style="margin-top:12px;"></ul>
 
-      <div class="danger-zone">
-        <div class="grid">
-          <button id="btnExport" class="secondary">Exportar rutas (copia/pega)</button>
-          <button id="btnImport" class="secondary">Importar rutas (pegar JSON)</button>
-          <textarea id="jsonBox" rows="6" placeholder='Aquí verás/pegarás el JSON de tus rutas' style="display:none;"></textarea>
-        </div>
+      <div class="grid" style="margin-top:10px;">
+        <button id="btnExport" class="secondary">Exportar rutas (JSON)</button>
+        <button id="btnImport" class="secondary">Importar rutas (pegar JSON)</button>
+        <textarea id="jsonBox" rows="6" placeholder='Pega aquí el JSON de tus rutas' style="display:none;"></textarea>
       </div>
     </section>
   </main>
 
-  <div class="footer-note">Consejo ninja: añade esta página a la pantalla de inicio del iPhone para abrirla como app.</div>
+  <div class="footer-note">Tip: Añade esta página a inicio en el iPhone para usarla como app.</div>
 
 <script>
-/* ========= Claves de almacenamiento ========= */
-const LS_ROUTES_KEY = 'routes_v1';                 // rutas predefinidas (editables)
-const LS_PROGRESS_PREFIX = 'progress_v1_';         // progreso por ruta (checks)
-
-/* ========= Rutas por defecto (edítalas o impórtalas) ========= */
+/* ======= Claves y defaults ======= */
+const LS_ROUTES_KEY = 'routes_v2';
+const LS_PROGRESS_PREFIX = 'progress_v2_';
 const DEFAULT_ROUTES = {
   "Lunes":    ["RTE L'ESTONETA","RTE PIPA","MARIMBA"],
   "Martes":   ["EL PEDREGAL","LES CATIVAS","BAR RESTAURANTE POMA"],
@@ -106,38 +134,12 @@ const DEFAULT_ROUTES = {
   "Jueves":   [],
   "Viernes":  []
 };
+const DAYS = ["Lunes","Martes","Miércoles","Jueves","Viernes"];
+const VIEW_ALL = "__ALL__";
 
-/* ========= Utilidades ========= */
-const $ = sel => document.querySelector(sel);
-const $$ = sel => Array.from(document.querySelectorAll(sel));
-
-function loadRoutes() {
-  try {
-    const raw = localStorage.getItem(LS_ROUTES_KEY);
-    if (!raw) return { ...DEFAULT_ROUTES };
-    const parsed = JSON.parse(raw);
-    // Asegurar que existan las 5 rutas aunque falten en el JSON
-    return { ...DEFAULT_ROUTES, ...parsed };
-  } catch (_) {
-    return { ...DEFAULT_ROUTES };
-  }
-}
-function saveRoutes(routes) {
-  localStorage.setItem(LS_ROUTES_KEY, JSON.stringify(routes));
-}
-
-function loadProgress(routeName) {
-  try {
-    const raw = localStorage.getItem(LS_PROGRESS_PREFIX + routeName);
-    return raw ? new Set(JSON.parse(raw)) : new Set();
-  } catch (_) { return new Set(); }
-}
-function saveProgress(routeName, set) {
-  localStorage.setItem(LS_PROGRESS_PREFIX + routeName, JSON.stringify(Array.from(set)));
-}
-
+/* ======= Helpers ======= */
+const $ = s => document.querySelector(s);
 function toast(msg) {
-  // Simple vibración visual (accesible y mínima para iPhone)
   const t = document.createElement('div');
   t.textContent = msg;
   t.style.position='fixed'; t.style.left='50%'; t.style.bottom='18px'; t.style.transform='translateX(-50%)';
@@ -148,156 +150,276 @@ function toast(msg) {
   setTimeout(()=> t.remove(), 1300);
 }
 
-/* ========= Estado de la app ========= */
-let ROUTES = loadRoutes();                  // objeto {Ruta:[clientes...]}
-let CURRENT_ROUTE = $('#rutaSelect').value; // string
-let PROGRESS = loadProgress(CURRENT_ROUTE); // Set de clientes hechos (por nombre exacto)
+/* ======= Estado ======= */
+let ROUTES = loadRoutes();
+let CURRENT_VIEW = $("#rutaSelect").value; // día o VIEW_ALL
+let PROGRESS = loadProgress(CURRENT_VIEW);
 
-/* ========= Pintar lista de clientes ========= */
-function renderList() {
-  $('#rutaTitulo').textContent = CURRENT_ROUTE;
-  const ul = $('#clientesUl');
-  ul.innerHTML = '';
-  const clientes = ROUTES[CURRENT_ROUTE] || [];
-  $('#vacioMsg').style.display = clientes.length ? 'none' : 'block';
-
-  clientes.forEach(name => {
-    const li = document.createElement('li');
-    const cb = document.createElement('input');
-    cb.type='checkbox';
-    cb.checked = PROGRESS.has(name);
-    cb.setAttribute('aria-label', `Visita a ${name}`);
-    cb.addEventListener('change', () => {
-      if (cb.checked) PROGRESS.add(name); else PROGRESS.delete(name);
-      saveProgress(CURRENT_ROUTE, PROGRESS);
-      li.classList.toggle('done', cb.checked);
-    });
-    const label = document.createElement('label');
-    label.textContent = name;
-    li.appendChild(cb);
-    li.appendChild(label);
-    li.classList.toggle('done', cb.checked);
-    ul.appendChild(li);
-  });
+/* ======= Carga/guardar ======= */
+function loadRoutes() {
+  try {
+    const raw = localStorage.getItem(LS_ROUTES_KEY);
+    if (!raw) return { ...DEFAULT_ROUTES };
+    const parsed = JSON.parse(raw);
+    return { ...DEFAULT_ROUTES, ...parsed };
+  } catch(_) { return { ...DEFAULT_ROUTES }; }
+}
+function saveRoutes() {
+  localStorage.setItem(LS_ROUTES_KEY, JSON.stringify(ROUTES));
+}
+function loadProgress(route) {
+  if (!DAYS.includes(route)) return new Set();
+  try {
+    const raw = localStorage.getItem(LS_PROGRESS_PREFIX + route);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch(_) { return new Set(); }
+}
+function saveProgress(route, set) {
+  if (!DAYS.includes(route)) return;
+  localStorage.setItem(LS_PROGRESS_PREFIX + route, JSON.stringify(Array.from(set)));
 }
 
-/* ========= Cambio de ruta ========= */
-$('#rutaSelect').addEventListener('change', e => {
-  CURRENT_ROUTE = e.target.value;
-  PROGRESS = loadProgress(CURRENT_ROUTE);
-  // Ocultar editor si estaba abierto, para evitar confusiones
+/* ======= Util lógica ======= */
+function getAllClientsUnique() {
+  const set = new Set();
+  DAYS.forEach(d => (ROUTES[d]||[]).forEach(c => set.add(c)));
+  return Array.from(set).sort((a,b)=>a.localeCompare(b));
+}
+function isInRoute(route, client) {
+  return (ROUTES[route]||[]).includes(client);
+}
+function addToRoute(route, client) {
+  if (!ROUTES[route]) ROUTES[route] = [];
+  if (!isInRoute(route, client)) {
+    ROUTES[route].push(client);
+    saveRoutes();
+  }
+}
+function removeFromRoute(route, client) {
+  if (!ROUTES[route]) return;
+  const idx = ROUTES[route].indexOf(client);
+  if (idx >= 0) {
+    ROUTES[route].splice(idx,1);
+    saveRoutes();
+  }
+  // si estaba marcado en progreso, lo limpiamos
+  if (DAYS.includes(route)) {
+    const p = loadProgress(route);
+    p.delete(client);
+    saveProgress(route, p);
+  }
+}
+
+/* ======= Render ======= */
+function render() {
+  $("#vistaTitulo").textContent = (CURRENT_VIEW === VIEW_ALL) ? "Todos (catálogo)" : CURRENT_VIEW;
+
+  const isAll = CURRENT_VIEW === VIEW_ALL;
+  $("#toolbarRutas").style.display = isAll ? 'none' : 'flex';
+  $("#toolbarTodos").style.display = isAll ? 'flex' : 'none';
+
+  const filter = ($("#searchBox").value || "").trim().toLowerCase();
+  const ul = $("#clientesUl");
+  ul.innerHTML = "";
+
+  if (isAll) {
+    const target = $("#targetRoute").value;
+    const all = getAllClientsUnique().filter(c => c.toLowerCase().includes(filter));
+    $("#vacioMsg").style.display = all.length ? 'none' : 'block';
+
+    all.forEach(client => {
+      const li = document.createElement('li');
+      // checkbox de pertenencia a la ruta destino
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = isInRoute(target, client);
+      cb.setAttribute('aria-label', `Añadir ${client} a ${target}`);
+      cb.addEventListener('change', () => {
+        if (cb.checked) { addToRoute(target, client); toast(`Añadido a ${target}`); }
+        else { removeFromRoute(target, client); toast(`Quitado de ${target}`); }
+        // si estás mirando el mismo target, no hace falta más
+      });
+
+      // nombre clicable para abrir en mapas
+      const label = document.createElement('label');
+      label.textContent = client;
+      label.style.flex = '1';
+      label.style.cursor = 'pointer';
+      label.addEventListener('click', () => {
+        const q = encodeURIComponent(client);
+        location.href = `https://maps.apple.com/?q=${q}`; // se abre en iPhone Mapas
+      });
+
+      // chips mostrando en qué rutas está este cliente
+      const chips = document.createElement('div');
+      chips.className = 'row-inline';
+      DAYS.forEach(d => {
+        if (isInRoute(d, client)) {
+          const chip = document.createElement('span');
+          chip.className = 'pill';
+          chip.textContent = d[0]; // inicial del día
+          chips.appendChild(chip);
+        }
+      });
+
+      li.appendChild(cb);
+      li.appendChild(label);
+      li.appendChild(chips);
+      ul.appendChild(li);
+    });
+  } else {
+    // Vista de un día concreto
+    const clients = (ROUTES[CURRENT_VIEW]||[]).filter(c => c.toLowerCase().includes(filter));
+    $("#vacioMsg").style.display = clients.length ? 'none' : 'block';
+
+    clients.forEach(client => {
+      const li = document.createElement('li');
+      const cb = document.createElement('input');
+      cb.type='checkbox';
+      cb.checked = PROGRESS.has(client);
+      cb.setAttribute('aria-label', `Visita a ${client}`);
+      cb.addEventListener('change', () => {
+        if (cb.checked) PROGRESS.add(client); else PROGRESS.delete(client);
+        saveProgress(CURRENT_VIEW, PROGRESS);
+        li.classList.toggle('done', cb.checked);
+      });
+
+      const label = document.createElement('label');
+      label.textContent = client;
+      label.style.flex = '1';
+      label.style.cursor = 'pointer';
+      label.addEventListener('click', () => {
+        const q = encodeURIComponent(client);
+        location.href = `https://maps.apple.com/?q=${q}`;
+      });
+
+      li.appendChild(cb);
+      li.appendChild(label);
+      li.classList.toggle('done', cb.checked);
+      ul.appendChild(li);
+    });
+  }
+}
+
+/* ======= Eventos UI ======= */
+$("#rutaSelect").addEventListener('change', e => {
+  CURRENT_VIEW = e.target.value;
+  PROGRESS = loadProgress(CURRENT_VIEW);
   closeEditor();
-  renderList();
+  render();
+});
+$("#targetRoute").addEventListener('change', () => render());
+$("#searchBox").addEventListener('input', () => render());
+
+$("#btnAddAllFiltered").addEventListener('click', () => {
+  const target = $("#targetRoute").value;
+  const filter = ($("#searchBox").value || "").trim().toLowerCase();
+  const all = getAllClientsUnique().filter(c => c.toLowerCase().includes(filter));
+  let count = 0;
+  all.forEach(c => { if (!isInRoute(target,c)) { addToRoute(target,c); count++; } });
+  toast(count ? `Añadidos ${count} a ${target}` : 'Nada que añadir');
+  render();
+});
+$("#btnRemoveAllFiltered").addEventListener('click', () => {
+  const target = $("#targetRoute").value;
+  const filter = ($("#searchBox").value || "").trim().toLowerCase();
+  const all = getAllClientsUnique().filter(c => c.toLowerCase().includes(filter));
+  let count = 0;
+  all.forEach(c => { if (isInRoute(target,c)) { removeFromRoute(target,c); count++; } });
+  toast(count ? `Quitados ${count} de ${target}` : 'Nada que quitar');
+  render();
 });
 
-/* ========= Reiniciar visitas ========= */
-$('#btnResetRuta').addEventListener('click', () => {
-  const ok = confirm(`¿Reiniciar las visitas marcadas de "${CURRENT_ROUTE}"?`);
+/* Reinicios */
+$("#btnResetRuta").addEventListener('click', () => {
+  if (!DAYS.includes(CURRENT_VIEW)) return;
+  const ok = confirm(`¿Reiniciar visitas marcadas de "${CURRENT_VIEW}"?`);
   if (!ok) return;
   PROGRESS = new Set();
-  saveProgress(CURRENT_ROUTE, PROGRESS);
-  renderList();
+  saveProgress(CURRENT_VIEW, PROGRESS);
+  render();
   toast('Ruta reiniciada');
 });
-$('#btnResetTodas').addEventListener('click', () => {
+$("#btnResetTodas").addEventListener('click', () => {
   const ok = confirm('¿Reiniciar TODAS las visitas marcadas (todas las rutas)?');
   if (!ok) return;
-  Object.keys(ROUTES).forEach(r => localStorage.removeItem(LS_PROGRESS_PREFIX + r));
-  PROGRESS = loadProgress(CURRENT_ROUTE);
-  renderList();
+  DAYS.forEach(d => localStorage.removeItem(LS_PROGRESS_PREFIX + d));
+  PROGRESS = loadProgress(CURRENT_VIEW);
+  render();
   toast('Todas las visitas reiniciadas');
 });
 
-/* ========= Editor de rutas (añadir/quitar clientes) ========= */
-const editor = $('#editor');
-const editorUl = $('#editorUl');
-const nuevoCliente = $('#nuevoCliente');
-
+/* ======= Editor simple ======= */
+const editor = $("#editor");
 function openEditor() {
-  $('#rutaEditTitulo').textContent = CURRENT_ROUTE;
-  editorUl.innerHTML = '';
-  const lista = ROUTES[CURRENT_ROUTE] || [];
-  lista.forEach((name, idx) => {
+  if (!DAYS.includes(CURRENT_VIEW)) { toast('Abre una ruta (no "Todos") para editar'); return; }
+  $("#rutaEditTitulo").textContent = CURRENT_VIEW;
+  const ul = $("#editorUl");
+  ul.innerHTML = '';
+  (ROUTES[CURRENT_VIEW]||[]).forEach((name, idx) => {
     const li = document.createElement('li');
     const span = document.createElement('span'); span.textContent = name; span.style.flex='1';
     const del = document.createElement('button'); del.textContent='Eliminar'; del.className='secondary';
     del.addEventListener('click', () => {
-      ROUTES[CURRENT_ROUTE].splice(idx,1);
-      saveRoutes(ROUTES);
-      // También quitamos el progreso de ese cliente en esta ruta si existía
-      PROGRESS.delete(name); saveProgress(CURRENT_ROUTE, PROGRESS);
-      openEditor(); // recargar editor
-      renderList(); // refrescar lista principal
+      removeFromRoute(CURRENT_VIEW, name);
+      openEditor(); render();
     });
     li.appendChild(span); li.appendChild(del);
-    editorUl.appendChild(li);
+    ul.appendChild(li);
   });
-  editor.style.display='block';
-  editor.setAttribute('aria-hidden','false');
-  $('#btnEditar').textContent = 'Cerrar editor';
+  editor.style.display='block'; editor.setAttribute('aria-hidden','false');
+  $("#btnEditar").textContent = 'Cerrar editor';
 }
 function closeEditor() {
-  editor.style.display='none';
-  editor.setAttribute('aria-hidden','true');
-  $('#btnEditar').textContent = 'Editar rutas';
+  editor.style.display='none'; editor.setAttribute('aria-hidden','true');
+  $("#btnEditar").textContent = 'Editar rutas';
 }
-$('#btnEditar').addEventListener('click', () => {
+$("#btnEditar").addEventListener('click', () => {
   const open = editor.style.display === 'block';
   open ? closeEditor() : openEditor();
 });
-
-$('#btnAdd').addEventListener('click', () => {
-  const name = (nuevoCliente.value || '').trim();
+$("#btnAdd").addEventListener('click', () => {
+  if (!DAYS.includes(CURRENT_VIEW)) { toast('Primero elige una ruta (no "Todos")'); return; }
+  const name = ($("#nuevoCliente").value||'').trim();
   if (!name) { toast('Escribe un nombre'); return; }
-  if (!ROUTES[CURRENT_ROUTE]) ROUTES[CURRENT_ROUTE] = [];
-  ROUTES[CURRENT_ROUTE].push(name);
-  saveRoutes(ROUTES);
-  nuevoCliente.value='';
-  openEditor();   // repinta editor
-  renderList();   // repinta lista
-  toast('Cliente añadido');
+  addToRoute(CURRENT_VIEW, name);
+  $("#nuevoCliente").value='';
+  openEditor(); render(); toast('Cliente añadido');
 });
+$("#btnGuardar").addEventListener('click', () => { saveRoutes(); toast('Rutas guardadas'); });
 
-$('#btnGuardar').addEventListener('click', () => {
-  saveRoutes(ROUTES);
-  toast('Rutas guardadas');
+/* Exportar / Importar */
+$("#btnExport").addEventListener('click', () => {
+  const box = $("#jsonBox");
+  box.style.display='block';
+  box.value = JSON.stringify(ROUTES, null, 2);
+  box.focus(); box.select();
+  toast('JSON listo para copiar');
 });
-
-/* ========= Exportar / Importar (backup por texto) ========= */
-const jsonBox = $('#jsonBox');
-$('#btnExport').addEventListener('click', () => {
-  jsonBox.style.display='block';
-  jsonBox.value = JSON.stringify(ROUTES, null, 2);
-  jsonBox.focus(); jsonBox.select();
-  toast('Copiado listo para pegar');
-});
-$('#btnImport').addEventListener('click', () => {
-  const visible = jsonBox.style.display === 'block';
-  if (!visible) { jsonBox.style.display='block'; jsonBox.value=''; jsonBox.placeholder='Pega aquí tu JSON y vuelve a pulsar Importar'; return; }
+$("#btnImport").addEventListener('click', () => {
+  const box = $("#jsonBox");
+  const visible = box.style.display === 'block';
+  if (!visible) { box.style.display='block'; box.value=''; box.placeholder='Pega aquí tu JSON y vuelve a pulsar Importar'; return; }
   try {
-    const parsed = JSON.parse(jsonBox.value);
-    // Validación mínima: asegurar 5 rutas
-    const needed = ["Lunes","Martes","Miércoles","Jueves","Viernes"];
-    needed.forEach(k => { if (!Array.isArray(parsed[k])) parsed[k]=[]; });
+    const parsed = JSON.parse(box.value);
+    DAYS.forEach(k => { if (!Array.isArray(parsed[k])) parsed[k]=[]; });
     ROUTES = parsed;
-    saveRoutes(ROUTES);
-    PROGRESS = loadProgress(CURRENT_ROUTE);
-    renderList();
+    saveRoutes();
+    PROGRESS = loadProgress(CURRENT_VIEW);
+    render();
     openEditor();
     toast('Rutas importadas');
-  } catch (e) {
-    alert('JSON inválido. Revisa que esté bien formado.');
+  } catch(e) {
+    alert('JSON inválido');
   }
 });
 
-/* ========= Inicio ========= */
-(function init() {
-  // Asegurar que existan todas las rutas
-  const needed = ["Lunes","Martes","Miércoles","Jueves","Viernes"];
-  let changed = false;
-  needed.forEach(k => { if (!Array.isArray(ROUTES[k])) { ROUTES[k]=[]; changed=true; } });
-  if (changed) saveRoutes(ROUTES);
-  renderList();
+/* ======= Init ======= */
+(function init(){
+  // asegurar claves
+  let changed=false; DAYS.forEach(k => { if (!Array.isArray(ROUTES[k])) { ROUTES[k]=[]; changed=true; } });
+  if (changed) saveRoutes();
+  render();
 })();
 </script>
 </body>
