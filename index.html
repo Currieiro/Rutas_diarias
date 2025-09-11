@@ -17,7 +17,7 @@
     .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
     .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
     .grow{flex:1}
-    input[type="date"],input[type="text"],input[type="search"],textarea,button,.pill,select{border:1px solid var(--line);background:#0e1015;color:var(--ink);padding:12px 14px;border-radius:12px}
+    input[type="date"],input[type="text"],input[type="search"],textarea,button,.pill,select{border:1px solid var(--line);background:#0e1015;color:#eaeef3;padding:12px 14px;border-radius:12px}
     input[type="text"],input[type="search"],textarea{width:100%}
     input.lg{font-size:1.05rem;padding:14px 16px}
     textarea{min-height:120px;resize:vertical}
@@ -37,7 +37,6 @@
     .split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .hidden{display:none}
     .foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;color:var(--muted);font-size:13px}
-    .link{color:var(--accent);text-decoration:none}
     .right{justify-content:flex-end}
     .checkall{display:flex;align-items:center;gap:8px}
     .badge{border:1px solid var(--line);padding:2px 8px;border-radius:999px;font-size:12px}
@@ -56,7 +55,7 @@
   <div class="wrap">
     <div class="row" style="margin-bottom:16px">
       <h1>Planificador diario de clientes</h1>
-      <span class="badge" id="version">v1.3</span>
+      <span class="badge" id="version">v1.4</span>
       <div class="grow"></div>
       <button class="ghost" id="toggleTheme" title="Cambiar tema">🌓</button>
     </div>
@@ -182,16 +181,54 @@
   </div>
 
   <script>
-    // ========= Datos por defecto (semilla desde tu PDF) =========
+  // Aseguramos que el JS no peta por detalles de entorno (localStorage/fechas)
+  (function(){
+    const safeStorage = (function(){
+      try{
+        const t='__test__';
+        localStorage.setItem(t,'1'); localStorage.removeItem(t);
+        return localStorage;
+      }catch(_){
+        let mem = {};
+        return {
+          getItem:k=>mem[k]||null,
+          setItem:(k,v)=>{mem[k]=String(v)},
+          removeItem:(k)=>{delete mem[k]}
+        };
+      }
+    })();
+
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    function todayStr(){
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth()+1).padStart(2,'0');
+      const dd = String(now.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    function getDateFromInput(sel){
+      const el = $(sel);
+      if(!el || !el.value){ el && (el.value=todayStr()); }
+      const d = new Date(el ? el.value : todayStr());
+      return isNaN(d) ? new Date(todayStr()) : d;
+    }
+    function dateKey(d){
+      const dd = (d instanceof Date && !isNaN(d)) ? d : new Date(todayStr());
+      const yyyy = dd.getFullYear();
+      const mm = String(dd.getMonth()+1).padStart(2,'0');
+      const day = String(dd.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${day}`;
+    }
+
+    // ========= Datos por defecto =========
     const DEFAULT_CLIENTES = [
       "RTE L'ESTONETA","RTE PIPA","CUATRECASAS","SET POINT","MARIMBA","EL PEDREGAL","LES CATIVAS","BAR RESTAURANTE POMA","A PROP TEU","TIENDA RONDA SANT ANTONI","O BURATO BAR","BAR CAFETERIA MARIANA","MANDONI PEDRALBES","TEATRO NACIONAL DE CATALUNYA","RESTAURANT CENT FOCS","HOTEL MESON CASTILLA","BAR RTE LEPANTO","CAFE ILUSIONA BY MUXIA","EL MOLI PAN Y CAFE SANTS","OMBU, RTE","DAMAIA, BAR","EXE RAMBLAS BOQUERIA","PLEASE PLATS","RESTAURANTE HONKAKU II","O CANTO RESTAURANTE","SARA TAPES","HOTEL SB GLOW","TOC HOSTAL GRAN VIA","HOTEL SB ICARIA BARCELONA","CAFETERIA DOMI","TIENDA JOAQUIM VALLS","GOIKO GRILL CARRER CAN SEGALAR","EL FOC DEN CANIGO","GOIKO GRILL GRAN VIA DE LES CORTS","LA FILOMENA BAR","GOIKO GRILL CARRER INDEPENDENCIA","GOIKO GRILL BRUC","GOIKO GRILL C.C. SOM MULTIESPAI","EUROSTARS ANGLI","BAR CAÑAS","GOIKO GRILL PASSEIG SANT JOAN","GARBI","SETEMBRE","LA CASSOLETA","GOIKO GRILL CARRER D'ARIBAU","TIENDA TORRES I BAGES","ATICCO PASSEIG DE GRÀCIA CANTINA","EXE LAIETANA PALACE","TIENDA MERIDIANA II","EUROSTARS CRISTAL PALACE","RIAS DE GALICIA RTE","MIRADOR SANT JUST","IKONIK RAMBLAS","GOIKO MARAGALL","CASA DE TAPAS LA CAÑOTA","GOIKO GRILL LAIETANA","ALTIMA HOSPITALET GRAN VIA","RINCON GALEGO","BAR EUROPA","RESTAURANTE SUKAPA","ANTOTXO","RTE ZHU ZHU","EXE PLAZA CATALUNYA 4","EUROSTARS MONUMENTAL","EUROSTARS MITRE","TIENDA SANT VICENÇ DELS HORTS","FORN VELL INDUSTRIA","FORN VELL CLARET","TIENDA VIA JULIA","VALDAURA","PIPA S CAFETERIA","RESTAURANTE LA GORMANDA","BAR BUC","TOSTA BAR","ADELITA RESTAURANTE","MOLI PAN Y CAFE ZONA FRANCA","LOKAL","BATEA","BAR LOS PINOS 2","TSUKIMI","LA PALMERA","EL MIRALL DELS ENCANTS","LOMO ALTO","HOTEL ORIENTE","HOTEL ARENAS","HOTEL TRES TORRES","ESCAIRON","LA RUTA GALLEGA","TIENDA CLOT","LA BRASA RESTAURANTE","RTE ANCARES","A DUES RODES","CAFETERIA RONDA SANT BOI","TIENDA LES CORTS","LA LLAR DEL MERCAT 2 SANT BOI","HOTEL SB WIN SANT FELIU","LOS 3 ARCOS BAR","RTE MAMETORA","BOEDO","O RINCON GALLEGO MERIDIANA","R.U. COSMOPOLITAN","FRANKFURT TOLIK","CIURIS","CAFETERIA LEROY MERLIN SANT BOI","BAR DE BO","ESCUELA JUDICIAL BCN","O MEU LAR","EL CARQUINYOLI","NON SOLO CREPS","GREENVITA NUMANCIA","K10 SUSHI SANT BOI","EL RACONET D'URGELL","TIENDA EL TALLER SANT BOI","CHALITO BCN.","HOTEL FRONTAIR CONGRESS","CLUB TIRO MONTJUIT","FRANKFURT SANTS","R.U. EMILIE DE VILLENUEVE","SOLUCIONS SOCIALS INSERCIO","ALTIMA SANT BOI","FUNDACIO ASPACE CATALUNYA","GREEN VITA GLORIES","ATICCO PASSEIG DE GRÀCIA OFICINA","70/30","ORDAL","PESSEBRE","BUFFS DE FARINA","TIENDA TALLER VALLDAURA","ARTESANO","HELADERÍA ADRI GELATIAMO"
     ];
 
-    const DEFAULT_RUTAS = {
-      'R-1': [], 'R-2': [], 'R-3': [], 'R-4': [], 'R-5': []
-    };
+    const DEFAULT_RUTAS = { 'R-1': [], 'R-2': [], 'R-3': [], 'R-4': [], 'R-5': [] };
 
-    // ========= Utilidades de almacenamiento =========
     const LS_KEYS = {
       clientes: 'clientes',        // array de strings
       planes: 'planes',            // objeto: { 'YYYY-MM-DD': [clientes] }
@@ -199,66 +236,47 @@
       hechos: 'visitasHechas'      // objeto: { 'YYYY-MM-DD': { 'Cliente A': true, ... } }
     };
 
-    const $ = sel => document.querySelector(sel);
-    const $$ = sel => Array.from(document.querySelectorAll(sel));
-
-    function loadClientes(){
-      try{ const s = localStorage.getItem(LS_KEYS.clientes); if(s){ return JSON.parse(s); } }catch{}
-      return [...new Set(DEFAULT_CLIENTES)];
+    function load(key, fallback){
+      try{ const raw = safeStorage.getItem(key); return raw? JSON.parse(raw) : fallback; }catch(_){ return fallback; }
     }
-    function saveClientes(arr){ localStorage.setItem(LS_KEYS.clientes, JSON.stringify([...new Set(arr.map(x=>x.trim()).filter(Boolean))])); }
+    function save(key, val){ try{ safeStorage.setItem(key, JSON.stringify(val)); }catch(_){} }
 
-    function loadPlanes(){ try{ return JSON.parse(localStorage.getItem(LS_KEYS.planes)||'{}'); }catch{ return {}; } }
-    function savePlanes(obj){ localStorage.setItem(LS_KEYS.planes, JSON.stringify(obj)); }
+    // Estado
+    let CLIENTES = load(LS_KEYS.clientes, [...new Set(DEFAULT_CLIENTES)]);
+    let PLANES   = load(LS_KEYS.planes, {});
+    let RUTAS    = Object.assign({}, DEFAULT_RUTAS, load(LS_KEYS.rutas, {}));
+    let HECHOS   = load(LS_KEYS.hechos, {});
 
-    function loadRutas(){
-      try{ const s = JSON.parse(localStorage.getItem(LS_KEYS.rutas)||'{}');
-        return {...DEFAULT_RUTAS, ...s};
-      }catch{ return {...DEFAULT_RUTAS}; }
+    // Pestañas
+    function setupTabs(){
+      $$('.pill').forEach(p=>p.addEventListener('click',()=>{
+        $$('.pill').forEach(x=>x.classList.remove('active'));
+        p.classList.add('active');
+        const tab = p.dataset.tab;
+        $('#tab-plan').classList.toggle('hidden', tab!=='plan');
+        $('#tab-ruta').classList.toggle('hidden', tab!=='ruta');
+        $('#tab-rutas').classList.toggle('hidden', tab!=='rutas');
+        $('#tab-clientes').classList.toggle('hidden', tab!=='clientes');
+        $('#tab-ayuda').classList.toggle('hidden', tab!=='ayuda');
+        if(tab==='ruta'){ renderRutaDia(); }
+        if(tab==='rutas'){ renderRutas(); }
+      }));
     }
-    function saveRutas(obj){
-      const out = {...DEFAULT_RUTAS, ...obj};
-      Object.keys(out).forEach(k=>{ out[k] = [...new Set((out[k]||[]).filter(Boolean))]; });
-      localStorage.setItem(LS_KEYS.rutas, JSON.stringify(out));
-    }
 
-    function loadHechos(){
-      try{ return JSON.parse(localStorage.getItem(LS_KEYS.hechos)||'{}'); }catch{ return {}; }
-    }
-    function saveHechos(obj){ localStorage.setItem(LS_KEYS.hechos, JSON.stringify(obj)); }
-
-    function dateKey(d){ return d.toISOString().slice(0,10); }
-
-    // ========= Estado =========
-    let CLIENTES = loadClientes();
-    let PLANES = loadPlanes();
-    let RUTAS = loadRutas();
-    let HECHOS = loadHechos();
-
-    // ========= UI: pestañas =========
-    $$('.pill').forEach(p=>p.addEventListener('click',()=>{
-      $$('.pill').forEach(x=>x.classList.remove('active'));
-      p.classList.add('active');
-      const tab = p.dataset.tab;
-      $('#tab-plan').classList.toggle('hidden', tab!=='plan');
-      $('#tab-ruta').classList.toggle('hidden', tab!=='ruta');
-      $('#tab-rutas').classList.toggle('hidden', tab!=='rutas');
-      $('#tab-clientes').classList.toggle('hidden', tab!=='clientes');
-      $('#tab-ayuda').classList.toggle('hidden', tab!=='ayuda');
-      if(tab==='ruta'){ renderRutaDia(); }
-      if(tab==='rutas'){ renderRutas(); }
-    }));
-
-    // ========= Render de clientes para un día =========
+    // Render listado
     function renderLista(){
-      const cont = $('#lista');
-      const filtro = $('#buscador').value.trim().toLowerCase();
-      const fecha = new Date($('#fecha').value);
-      const key = dateKey(fecha);
+      const cont = $('#lista'); if(!cont) return;
+      const filtro = ($('#buscador')?.value||'').trim().toLowerCase();
+      const key = dateKey(getDateFromInput('#fecha'));
       const seleccionados = new Set(PLANES[key]||[]);
-
       const visibles = CLIENTES.filter(c=> c.toLowerCase().includes(filtro));
       cont.innerHTML = '';
+      if(!visibles.length){
+        const div = document.createElement('div');
+        div.className='item';
+        div.innerHTML = '<div class="muted">No hay clientes que coincidan con la búsqueda.</div>';
+        cont.appendChild(div);
+      }
       visibles.forEach(nombre=>{
         const id = 'c-'+nombre.replace(/[^a-z0-9]+/gi,'-');
         const div = document.createElement('label');
@@ -274,7 +292,7 @@
         chk.addEventListener('change',()=>{
           if(chk.checked){ seleccionados.add(nombre); } else { seleccionados.delete(nombre); }
           PLANES[key] = Array.from(seleccionados);
-          savePlanes(PLANES);
+          save(LS_KEYS.planes, PLANES);
           updateToggleAll();
         });
         cont.appendChild(div);
@@ -284,170 +302,127 @@
     }
 
     function updateToggleAll(){
-      const fecha = new Date($('#fecha').value);
-      const key = dateKey(fecha);
+      const key = dateKey(getDateFromInput('#fecha'));
       const seleccionados = new Set(PLANES[key]||[]);
-      const filtro = $('#buscador').value.trim().toLowerCase();
+      const filtro = ($('#buscador')?.value||'').trim().toLowerCase();
       const visibles = CLIENTES.filter(c=> c.toLowerCase().includes(filtro));
-      const allSelected = visibles.every(c=> seleccionados.has(c)) && visibles.length>0;
-      $('#toggleAll').checked = allSelected;
+      const allSelected = visibles.length>0 && visibles.every(c=> seleccionados.has(c));
+      const t = $('#toggleAll'); if(t) t.checked = allSelected;
     }
 
-    // ========= Eventos del plan =========
-    $('#fecha').addEventListener('change', ()=>{ renderLista(); syncRutaFecha(); });
-    $('#hoy').addEventListener('click', ()=>{ setToday('#fecha'); renderLista(); syncRutaFecha(); });
-    $('#buscador').addEventListener('input', renderLista);
-    $('#clearSearch').addEventListener('click', ()=>{ $('#buscador').value=''; renderLista(); $('#buscador').focus(); });
-
-    $('#toggleAll').addEventListener('change', (e)=>{
-      const fecha = new Date($('#fecha').value); const key = dateKey(fecha);
-      const filtro = $('#buscador').value.trim().toLowerCase();
-      const visibles = CLIENTES.filter(c=> c.toLowerCase().includes(filtro));
-      if(e.target.checked){
-        const set = new Set(PLANES[key]||[]);
-        visibles.forEach(v=> set.add(v));
-        PLANES[key] = Array.from(set);
-      } else {
-        const remain = new Set(PLANES[key]||[]);
-        visibles.forEach(v=> remain.delete(v));
-        PLANES[key] = Array.from(remain);
-      }
-      savePlanes(PLANES);
-      renderLista();
-    });
-
-    $('#guardar').addEventListener('click', ()=>{
-      alert('¡Día guardado!');
-    });
-
-    $('#vaciar').addEventListener('click', ()=>{
-      if(confirm('¿Seguro que quieres vaciar la selección de este día?')){
-        const key = dateKey(new Date($('#fecha').value));
-        PLANES[key] = [];
-        savePlanes(PLANES);
+    // Eventos plan
+    function setupPlanEvents(){
+      $('#fecha') && $('#fecha').addEventListener('change', ()=>{ renderLista(); syncRutaFecha(); });
+      $('#hoy') && $('#hoy').addEventListener('click', ()=>{ $('#fecha').value = todayStr(); renderLista(); syncRutaFecha(); });
+      $('#buscador') && $('#buscador').addEventListener('input', renderLista);
+      $('#clearSearch') && $('#clearSearch').addEventListener('click', ()=>{ $('#buscador').value=''; renderLista(); $('#buscador').focus(); });
+      $('#toggleAll') && $('#toggleAll').addEventListener('change', (e)=>{
+        const key = dateKey(getDateFromInput('#fecha'));
+        const filtro = ($('#buscador')?.value||'').trim().toLowerCase();
+        const visibles = CLIENTES.filter(c=> c.toLowerCase().includes(filtro));
+        if(e.target.checked){
+          const set = new Set(PLANES[key]||[]); visibles.forEach(v=> set.add(v)); PLANES[key] = Array.from(set);
+        } else {
+          const remain = new Set(PLANES[key]||[]); visibles.forEach(v=> remain.delete(v)); PLANES[key] = Array.from(remain);
+        }
+        save(LS_KEYS.planes, PLANES);
         renderLista();
-        // al vaciar también limpiamos los "hechos" de ese día
-        delete HECHOS[key];
-        saveHechos(HECHOS);
-      }
-    });
-
-    $('#imprimir').addEventListener('click', ()=>{ window.print(); });
-
-    $('#exportar').addEventListener('click', ()=>{
-      const data = { clientes: CLIENTES, planes: PLANES, rutas: RUTAS, hechos: HECHOS };
-      const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'planificador_clientes.json';
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
-
-    $('#importarBtn').addEventListener('click', ()=> $('#importar').click());
-    $('#importar').addEventListener('change', (e)=>{
-      const f = e.target.files[0]; if(!f) return;
-      const r = new FileReader();
-      r.onload = ()=>{
-        try{
-          const data = JSON.parse(r.result);
-          if(Array.isArray(data.clientes)){ CLIENTES = [...new Set(data.clientes)]; saveClientes(CLIENTES); }
-          if(data.planes && typeof data.planes==='object'){ PLANES = data.planes; savePlanes(PLANES); }
-          if(data.rutas && typeof data.rutas==='object'){ RUTAS = {...DEFAULT_RUTAS, ...data.rutas}; saveRutas(RUTAS); }
-          if(data.hechos && typeof data.hechos==='object'){ HECHOS = data.hechos; saveHechos(HECHOS); }
-          renderClientesAdmin();
+      });
+      $('#guardar') && $('#guardar').addEventListener('click', ()=> alert('¡Día guardado!'));
+      $('#vaciar') && $('#vaciar').addEventListener('click', ()=>{
+        if(confirm('¿Seguro que quieres vaciar la selección de este día?')){
+          const key = dateKey(getDateFromInput('#fecha'));
+          PLANES[key] = [];
+          save(LS_KEYS.planes, PLANES);
+          delete HECHOS[key];
+          save(LS_KEYS.hechos, HECHOS);
           renderLista();
-          renderRutas();
-          alert('Datos importados correctamente.');
-        }catch(err){ alert('Archivo no válido.'); }
-      };
-      r.readAsText(f);
-      e.target.value = '';
-    });
+        }
+      });
+      $('#imprimir') && $('#imprimir').addEventListener('click', ()=> window.print());
+      $('#exportar') && $('#exportar').addEventListener('click', ()=>{
+        const data = { clientes: CLIENTES, planes: PLANES, rutas: RUTAS, hechos: HECHOS };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'planificador_clientes.json'; a.click(); URL.revokeObjectURL(a.href);
+      });
+      $('#importarBtn') && $('#importarBtn').addEventListener('click', ()=> $('#importar').click());
+      $('#importar') && $('#importar').addEventListener('change', (e)=>{
+        const f = e.target.files[0]; if(!f) return;
+        const r = new FileReader();
+        r.onload = ()=>{
+          try{
+            const data = JSON.parse(r.result);
+            if(Array.isArray(data.clientes)){ CLIENTES = [...new Set(data.clientes)]; save(LS_KEYS.clientes, CLIENTES); }
+            if(data.planes && typeof data.planes==='object'){ PLANES = data.planes; save(LS_KEYS.planes, PLANES); }
+            if(data.rutas && typeof data.rutas==='object'){ RUTAS = Object.assign({}, DEFAULT_RUTAS, data.rutas); save(LS_KEYS.rutas, RUTAS); }
+            if(data.hechos && typeof data.hechos==='object'){ HECHOS = data.hechos; save(LS_KEYS.hechos, HECHOS); }
+            renderClientesAdmin(); renderLista(); renderRutas(); alert('Datos importados correctamente.');
+          }catch(err){ alert('Archivo no válido.'); }
+        };
+        r.readAsText(f);
+        e.target.value = '';
+      });
+      $('#aplicarRuta') && $('#aplicarRuta').addEventListener('click', ()=>{
+        const sel = $('#selectRuta')?.value; if(!sel) return alert('Elige una ruta predefinida.');
+        const key = dateKey(getDateFromInput('#fecha'));
+        PLANES[key] = [...new Set(RUTAS[sel]||[])].filter(c=> CLIENTES.includes(c));
+        save(LS_KEYS.planes, PLANES);
+        renderLista();
+        alert('Ruta '+sel+' aplicada al día.');
+      });
+    }
 
-    // ========= Aplicar ruta predefinida al día =========
-    $('#aplicarRuta').addEventListener('click', ()=>{
-      const sel = $('#selectRuta').value; if(!sel) return alert('Elige una ruta predefinida.');
-      const fecha = new Date($('#fecha').value); const key = dateKey(fecha);
-      PLANES[key] = [...new Set(RUTAS[sel]||[])].filter(c=> CLIENTES.includes(c));
-      savePlanes(PLANES);
-      renderLista();
-      alert('Ruta '+sel+' aplicada al día.');
-    });
-
-    // ========= Admin de clientes =========
+    // Admin clientes
     function renderClientesAdmin(){
-      const box = $('#clientesList');
-      box.innerHTML = '';
+      const box = $('#clientesList'); if(!box) return;
+      box.innerHTML='';
       CLIENTES.forEach((c,i)=>{
-        const row = document.createElement('div');
-        row.className = 'item';
-        row.innerHTML = `
-          <div class="grow"><strong>${c}</strong></div>
-          <button class="danger" title="Eliminar">✕</button>`;
+        const row = document.createElement('div'); row.className='item';
+        row.innerHTML = `<div class="grow"><strong>${c}</strong></div><button class="danger" title="Eliminar">✕</button>`;
         row.querySelector('button').addEventListener('click', ()=>{
-          if(confirm('¿Eliminar "'+c+'" del listado?')){
-            CLIENTES.splice(i,1);
-            saveClientes(CLIENTES);
-            renderClientesAdmin();
-            renderLista();
-          }
+          if(confirm('¿Eliminar "'+c+'" del listado?')){ CLIENTES.splice(i,1); save(LS_KEYS.clientes, CLIENTES); renderClientesAdmin(); renderLista(); }
         });
         box.appendChild(row);
       });
     }
-
-    $('#addCliente').addEventListener('click', ()=>{
-      const v = $('#nuevoCliente').value.trim(); if(!v) return;
-      if(!CLIENTES.includes(v)) CLIENTES.push(v);
-      CLIENTES = [...new Set(CLIENTES)].sort((a,b)=>a.localeCompare(b));
-      saveClientes(CLIENTES);
-      $('#nuevoCliente').value='';
-      renderClientesAdmin();
-      renderLista();
-    });
-
-    $('#bulkAdd').addEventListener('click', ()=>{
-      const lines = $('#bulk').value.split(/
+    function setupClientes(){
+      $('#addCliente') && $('#addCliente').addEventListener('click', ()=>{
+        const v = ($('#nuevoCliente')?.value||'').trim(); if(!v) return;
+        if(!CLIENTES.includes(v)) CLIENTES.push(v);
+        CLIENTES = [...new Set(CLIENTES)].sort((a,b)=>a.localeCompare(b));
+        save(LS_KEYS.clientes, CLIENTES);
+        $('#nuevoCliente').value=''; renderClientesAdmin(); renderLista();
+      });
+      $('#bulkAdd') && $('#bulkAdd').addEventListener('click', ()=>{
+        const lines = ($('#bulk')?.value||'').split(/
 ?
 /).map(s=>s.trim()).filter(Boolean);
-      if(!lines.length) return;
-      CLIENTES = [...new Set([...CLIENTES, ...lines])];
-      CLIENTES.sort((a,b)=>a.localeCompare(b));
-      saveClientes(CLIENTES);
-      $('#bulk').value='';
-      renderClientesAdmin();
-      renderLista();
-    });
+        if(!lines.length) return;
+        CLIENTES = [...new Set([...CLIENTES, ...lines])].sort((a,b)=>a.localeCompare(b));
+        save(LS_KEYS.clientes, CLIENTES);
+        $('#bulk').value=''; renderClientesAdmin(); renderLista();
+      });
+      $('#resetClientes') && $('#resetClientes').addEventListener('click', ()=>{
+        if(confirm('¿Restablecer el listado a la versión original?')){ CLIENTES = [...new Set(DEFAULT_CLIENTES)]; save(LS_KEYS.clientes, CLIENTES); renderClientesAdmin(); renderLista(); }
+      });
+    }
 
-    $('#resetClientes').addEventListener('click', ()=>{
-      if(confirm('¿Restablecer el listado a la versión original?')){
-        CLIENTES = [...new Set(DEFAULT_CLIENTES)];
-        saveClientes(CLIENTES);
-        renderClientesAdmin();
-        renderLista();
-      }
-    });
-
-    // ========= Rutas predefinidas (UI) =========
+    // Rutas predefinidas
     function renderRutas(){
-      const box = $('#rutasBox');
-      box.innerHTML = '';
-      ['R-1','R-2','R-3','R-4','R-5'].forEach((k)=>{
+      const box = $('#rutasBox'); if(!box) return;
+      box.innerHTML='';
+      ['R-1','R-2','R-3','R-4','R-5'].forEach(k=>{
         const arr = RUTAS[k]||[];
-        const div = document.createElement('div');
-        div.className = 'item';
+        const div = document.createElement('div'); div.className='item';
         div.innerHTML = `
           <div class="grow">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <strong>${k}</strong> <span class="muted">(${arr.length} clientes)</span>
             </div>
-            <details style="margin-top:6px">
-              <summary>Ver lista</summary>
+            <details style="margin-top:6px"><summary>Ver lista</summary>
               <ul style="margin:6px 0 0 18px; padding:0">${arr.map(c=>`<li>${c}</li>`).join('')||'<li class="muted">(vacía)</li>'}</ul>
             </details>
-            <details style="margin-top:6px">
-              <summary>Editar</summary>
+            <details style="margin-top:6px"><summary>Editar</summary>
               <p class="hint">Pega uno por línea. Se eliminan duplicados y nombres vacíos.</p>
               <textarea data-edit="${k}">${arr.join('
 ')}</textarea>
@@ -461,107 +436,81 @@
           <div style="display:flex; flex-direction:column; gap:8px; min-width:180px">
             <button data-apply="${k}">Aplicar al día ▶</button>
             <button data-store="${k}">Guardar selección actual en ${k}</button>
-          </div>
-        `;
+          </div>`;
         box.appendChild(div);
       });
-
-      // listeners
       box.querySelectorAll('[data-apply]').forEach(btn=>btn.addEventListener('click', (e)=>{
         const k = e.target.getAttribute('data-apply');
-        const fecha = new Date($('#fecha').value); const key = dateKey(fecha);
+        const key = dateKey(getDateFromInput('#fecha'));
         PLANES[key] = [...new Set(RUTAS[k]||[])].filter(c=> CLIENTES.includes(c));
-        savePlanes(PLANES);
+        save(LS_KEYS.planes, PLANES);
         renderLista();
         alert('Ruta '+k+' aplicada al día.');
       }));
-
       box.querySelectorAll('[data-store]').forEach(btn=>btn.addEventListener('click', (e)=>{
         const k = e.target.getAttribute('data-store');
-        const fecha = new Date($('#fecha').value); const key = dateKey(fecha);
+        const key = dateKey(getDateFromInput('#fecha'));
         const lista = PLANES[key]||[];
         RUTAS[k] = lista.filter(c=> CLIENTES.includes(c));
-        saveRutas(RUTAS);
+        save(LS_KEYS.rutas, RUTAS);
         renderRutas();
         alert('Selección actual guardada en '+k+'.');
       }));
-
       box.querySelectorAll('[data-save]').forEach(btn=>btn.addEventListener('click', (e)=>{
         const k = e.target.getAttribute('data-save');
         const ta = box.querySelector(`textarea[data-edit="${k}"]`);
-        const lines = ta.value.split(/
+        const lines = (ta?.value||'').split(/
 ?
 /).map(s=>s.trim()).filter(Boolean);
         RUTAS[k] = [...new Set(lines)].filter(c=> CLIENTES.includes(c));
-        saveRutas(RUTAS);
+        save(LS_KEYS.rutas, RUTAS);
         renderRutas();
         alert('Ruta '+k+' actualizada.');
       }));
-
       box.querySelectorAll('[data-clear]').forEach(btn=>btn.addEventListener('click', (e)=>{
         const k = e.target.getAttribute('data-clear');
-        if(confirm('¿Vaciar por completo la ruta '+k+'?')){
-          RUTAS[k] = [];
-          saveRutas(RUTAS);
-          renderRutas();
-        }
+        if(confirm('¿Vaciar por completo la ruta '+k+'?')){ RUTAS[k] = []; save(LS_KEYS.rutas, RUTAS); renderRutas(); }
       }));
-
       box.querySelectorAll('[data-resetk]').forEach(btn=>btn.addEventListener('click', (e)=>{
         const k = e.target.getAttribute('data-resetk');
-        if(confirm('Esto deja la ruta '+k+' vacía (predefinida existe, pero sin clientes). ¿Continuar?')){
-          RUTAS[k] = [];
-          saveRutas(RUTAS);
-          renderRutas();
-        }
+        if(confirm('Esto deja la ruta '+k+' vacía (predefinida existe, pero sin clientes). ¿Continuar?')){ RUTAS[k] = []; save(LS_KEYS.rutas, RUTAS); renderRutas(); }
       }));
     }
 
-    // ========= Ruta del día =========
+    // Ruta del día
     function renderRutaDia(){
-      const fecha = new Date($('#fechaRuta').value || $('#fecha').value);
-      if(!$('#fechaRuta').value) $('#fechaRuta').value = $('#fecha').value;
-      const key = dateKey(fecha);
+      const fechaRuta = getDateFromInput('#fechaRuta');
+      $('#fechaRuta').value = dateKey(getDateFromInput('#fecha'));
+      const key = dateKey(fechaRuta);
       const lista = PLANES[key]||[];
       const hechos = HECHOS[key] || {};
-      const ol = $('#rutaLista');
+      const ol = $('#rutaLista'); if(!ol) return;
       ol.innerHTML = '';
       if(!lista.length){
-        const li = document.createElement('li');
-        li.innerHTML = '<span class="muted">(No hay clientes seleccionados para este día)</span>';
-        ol.appendChild(li);
-        return;
+        const li = document.createElement('li'); li.innerHTML = '<span class="muted">(No hay clientes seleccionados para este día)</span>'; ol.appendChild(li); return;
       }
       lista.forEach((c)=>{
         const li = document.createElement('li');
         const checked = !!hechos[c];
-        li.innerHTML = `
-          <label class="visit ${checked ? 'done' : ''}">
-            <input class="tick" type="checkbox" ${checked ? 'checked' : ''}>
-            <span>${c}</span>
-          </label>`;
+        li.innerHTML = `<label class="visit ${checked ? 'done' : ''}"><input class="tick" type="checkbox" ${checked ? 'checked' : ''}><span>${c}</span></label>`;
         const cb = li.querySelector('input');
         cb.addEventListener('change', ()=>{
-          const k = dateKey(new Date($('#fechaRuta').value));
-          HECHOS[k] = HECHOS[k] || {};
-          HECHOS[k][c] = cb.checked;
-          saveHechos(HECHOS);
+          const k = dateKey(getDateFromInput('#fechaRuta'));
+          HECHOS[k] = HECHOS[k] || {}; HECHOS[k][c] = cb.checked; save(LS_KEYS.hechos, HECHOS);
           li.querySelector('.visit').classList.toggle('done', cb.checked);
         });
         ol.appendChild(li);
       });
     }
+    function syncRutaFecha(){ $('#fechaRuta').value = $('#fecha').value; if(!$('#tab-ruta').classList.contains('hidden')) renderRutaDia(); }
 
-    function syncRutaFecha(){
-      $('#fechaRuta').value = $('#fecha').value;
-      if(!$('#tab-ruta').classList.contains('hidden')) renderRutaDia();
+    function setupRuta(){
+      $('#fechaRuta') && $('#fechaRuta').addEventListener('change', ()=>{ $('#fecha').value = $('#fechaRuta').value; renderLista(); renderRutaDia(); });
+      $('#hoyRuta') && $('#hoyRuta').addEventListener('click', ()=>{ $('#fechaRuta').value = todayStr(); $('#fecha').value = $('#fechaRuta').value; renderLista(); renderRutaDia(); });
+      $('#imprimirRuta') && $('#imprimirRuta').addEventListener('click', ()=> window.print());
     }
 
-    $('#fechaRuta').addEventListener('change', ()=>{ $('#fecha').value = $('#fechaRuta').value; renderLista(); renderRutaDia(); });
-    $('#hoyRuta').addEventListener('click', ()=>{ setToday('#fechaRuta'); $('#fecha').value = $('#fechaRuta').value; renderLista(); renderRutaDia(); });
-    $('#imprimirRuta').addEventListener('click', ()=> window.print());
-
-    // ========= Tema =========
+    // Tema
     const THEME_KEY = 'theme';
     function setTheme(mode){
       if(mode==='light'){
@@ -573,32 +522,34 @@
       } else {
         document.documentElement.removeAttribute('style');
       }
-      localStorage.setItem(THEME_KEY, mode);
+      try{ safeStorage.setItem(THEME_KEY, mode); }catch(_){ }
     }
-    $('#toggleTheme').addEventListener('click', ()=>{
-      const mode = localStorage.getItem(THEME_KEY)==='light' ? 'dark' : 'light';
-      setTheme(mode);
-    });
-
-    // ========= Util =========
-    function setToday(selector){
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth()+1).padStart(2,'0');
-      const dd = String(now.getDate()).padStart(2,'0');
-      $(selector).value = `${yyyy}-${mm}-${dd}`;
+    function setupTheme(){
+      const mode = (safeStorage.getItem(THEME_KEY)||'dark'); setTheme(mode);
+      $('#toggleTheme') && $('#toggleTheme').addEventListener('click', ()=>{ const mode = (safeStorage.getItem(THEME_KEY)==='light' ? 'dark' : 'light'); setTheme(mode); });
     }
 
-    (function init(){
-      const mode = localStorage.getItem(THEME_KEY) || 'dark';
-      setTheme(mode);
-      if(!$('#fecha').value) setToday('#fecha');
-      if(!$('#fechaRuta').value) $('#fechaRuta').value = $('#fecha').value;
+    // Init
+    function init(){
+      // fecha por defecto
+      if($('#fecha')){ if(!$('#fecha').value) $('#fecha').value = todayStr(); }
+      if($('#fechaRuta')){ if(!$('#fechaRuta').value) $('#fechaRuta').value = $('#fecha')?.value || todayStr(); }
+      setupTheme();
+      setupTabs();
+      setupPlanEvents();
+      setupClientes();
+      setupRuta();
       renderClientesAdmin();
       renderLista();
       renderRutas();
-    })();
+    }
+
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
   </script>
 </body>
 </html>
-
