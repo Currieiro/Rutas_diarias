@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Planificador Diario de Clientes</title>
   <style>
-    :root{
-      --bg:#0b0c0e; --card:#121419; --ink:#eaeef3; --muted:#aab3c2; --accent:#5ee6a5; --line:#232731;
-    }
+    :root{ --bg:#0b0c0e; --card:#121419; --ink:#eaeef3; --muted:#aab3c2; --accent:#5ee6a5; --line:#232731; }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial}
@@ -39,6 +37,8 @@
     details{border:1px solid var(--line);border-radius:12px;padding:10px;background:#0e1015}
     details+details{margin-top:10px}
     summary{cursor:pointer;font-weight:700}
+    .status{margin:8px 0 14px 0; padding:10px 12px; border-radius:10px; background:#201a13; border:1px solid #3a2f22; color:#ffedc2; font-size:13px}
+    .ok{background:#132019;border-color:#284a33;color:#c6ffd7}
     @media (max-width:860px){.split{grid-template-columns:1fr}}
   </style>
 </head>
@@ -46,9 +46,11 @@
   <div class="wrap">
     <div class="row" style="margin-bottom:16px">
       <h1>Planificador diario de clientes</h1>
-      <span class="badge" id="version">v1.1</span>
+      <span class="badge" id="version">v1.1.1</span>
       <div class="grow"></div>
     </div>
+
+    <div id="status" class="status">Cargando…</div>
 
     <div class="card">
       <div class="tabs">
@@ -84,6 +86,7 @@
           <button id="guardar">Guardar día</button>
           <button id="vaciar">Vaciar día</button>
           <button id="imprimir">Imprimir</button>
+          <button id="resetApp" title="Borrar datos guardados y restaurar">Reset app</button>
         </div>
 
         <div class="foot"><span class="muted">Clientes visibles: <span id="count"></span></span><span class="muted">Los datos se guardan en este navegador.</span></div>
@@ -141,158 +144,134 @@
   </div>
 
   <script>
+  (function(){
+    var statusEl = document.getElementById('status');
+    function setStatus(msg, ok){ statusEl.className = 'status'+(ok?' ok':''); statusEl.textContent = msg; }
+    function showError(e){ setStatus('⚠️ '+(e && (e.message||e)),''); }
+    window.addEventListener('error', function(e){ showError(e.error||e.message); });
+    window.addEventListener('unhandledrejection', function(e){ showError(e.reason||'Error desconocido'); });
+
+    function todayStr(){ var now=new Date(); var yyyy=now.getFullYear(); var mm=('0'+(now.getMonth()+1)).slice(-2); var dd=('0'+now.getDate()).slice(-2); return yyyy+'-'+mm+'-'+dd; }
+    function dateKey(d){ var yyyy=d.getFullYear(); var mm=('0'+(d.getMonth()+1)).slice(-2); var dd=('0'+d.getDate()).slice(-2); return yyyy+'-'+mm+'-'+dd; }
+
     // ======= Semilla desde tu PDF (actualizada) =======
     var DEFAULT_CLIENTES = [
       "RTE L'ESTONETA","RTE PIPA","MARIMBA","EL PEDREGAL","LES CATIVAS","BAR RESTAURANTE POMA","A PROP TEU","TIENDA RONDA SANT ANTONI","O BURATO BAR","BAR CAFETERIA MARIANA","MANDONI PEDRALBES","TEATRO NACIONAL DE CATALUNYA","RESTAURANT CENT FOCS","HOTEL MESON CASTILLA","BAR RTE LEPANTO","CAFE ILUSIONA BY MUXIA","EL MOLI PAN Y CAFE SANTS","OMBU,RTE","DAMAIA, BAR","EXE RAMBLAS BOQUERIA","PLEASE PLATS","RESTAURANTE HONKAKU II","O CANTO RESTAURANTE","SARA TAPES","HOTEL SB GLOW","TOC HOSTAL GRAN VIA","HOTEL SB ICARIA BARCELONA","CAFETERIA DOMI","TIENDA JOAQUIM VALLS","GOIKO GRILL CARRER CAN SEGALAR","EL FOC DEN CANIGO","GOIKO GRILL GRAN VIA DE LES CORTS","LA FILOMENA BAR","GOIKO GRILL CARRER INDEPENDENCIA","GOIKO GRILL BRUC","GOIKO GRILL C.C. SOM MULTIESPAI","EUROSTARS ANGLI","BAR CAÑAS","GOIKO GRILL PASSEIG SANT JOAN","GARBI","SETEMBRE","LA CASSOLETA","GOIKO GRILL CARRER D'ARIBAU","TIENDA TORRES I BAGES","ATICCO PASSEIG DE GRÀCIA CANTINA","EXE LAIETANA PALACE","TIENDA MERIDIANA II","EUROSTARS CRISTAL PALACE","RIAS DE GALICIA RTE","MIRADOR SANT JUST","IKONIK RAMBLAS","GOIKO MARAGALL","CASA DE TAPAS LA CAÑOTA","GOIKO GRILL LAIETANA","ALTIMA HOSPITALET GRAN VIA","RINCON GALEGO","BAR EUROPA","RESTAURANTE SUKAPA","ANTOTXO","RTE ZHU ZHU","EXE PLAZA CATALUNYA 4","EUROSTARS MONUMENTAL","EUROSTARS MITRE","TIENDA SANT VICENÇ DELS HORTS","FORN VELL INDUSTRIA","FORN VELL CLARET","TIENDA VIA JULIA","VALDAURA","PIPA S CAFETERIA","RESTAURANTE LA GORMANDA","BAR BUC","TOSTA BAR","ADELITA RESTAURANTE","MOLI PAN Y CAFE ZONA FRANCA","LOKAL","BATEA","BAR LOS PINOS 2","TSUKIMI","LA PALMERA","EL MIRALL DELS ENCANTS","LOMO ALTO","HOTEL ORIENTE","HOTEL ARENAS","HOTEL TRES TORRES","ESCAIRON","LA RUTA GALLEGA","TIENDA CLOT","LA BRASA RESTAURANTE","RTE ANCARES","A DUES RODES","CAFETERIA RONDA SANT BOI","TIENDA LES CORTS","LA LLAR DEL MERCAT 2 SANT BOI","HOTEL SB WIN SANT FELIU","LOS 3 ARCOS BAR","RTE MAMETORA","BOEDO","O RINCON GALLEGO MERIDIANA","R.U. COSMOPOLITAN","FRANKFURT TOLIK","CIURIS","CAFETERIA LEROY MERLIN SANT BOI","BAR DE BO","ESCUELA JUDICIAL BCN","O MEU LAR","EL CARQUINYOLI","NON SOLO CREPS","GREENVITA NUMANCIA","K10 SUSHI SANT BOI","EL RACONET D'URGELL","TIENDA EL TALLER SANT BOI","CHALITO BCN.","HOTEL FRONTAIR CONGRESS","CLUB TIRO MONTJUIT","FRANKFURT SANTS","R.U. EMILIE DE VILLENUEVE","SOLUCIONS SOCIALS INSERCIO","ALTIMA SANT BOI","FUNDACIO ASPACE CATALUNYA","GREEN VITA GLORIES","ATICCO PASSEIG DE GRÀCIA OFICINA","70/30","ORDAL","PESSEBRE","BUFFS DE FARINA","TIENDA TALLER VALLDAURA","ARTESANO","HELADERÍA ADRI GELATIAMO","CUATRECASAS","SET POINT"
     ];
 
-    // ======= Storage =======
+    // ======= Storage (blindado) =======
+    var LS = (function(){ try{ var t='__t__'; localStorage.setItem(t,'1'); localStorage.removeItem(t); return localStorage; }catch(_){ var mem={}; return {getItem:function(k){return mem[k]||null;}, setItem:function(k,v){mem[k]=String(v);}, removeItem:function(k){delete mem[k];}}; }})();
     var LS_KEYS = { clientes:'clientes', planes:'planes', rutas:'rutasPredef' };
-    function load(key, fb){ try{ var raw=localStorage.getItem(key); return raw? JSON.parse(raw) : fb; }catch(_){ return fb; } }
-    function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(_){}}
-
-    function dateKey(d){ return d.toISOString().slice(0,10); }
-    function todayStr(){ var now=new Date(); var yyyy=now.getFullYear(); var mm=('0'+(now.getMonth()+1)).slice(-2); var dd=('0'+now.getDate()).slice(-2); return yyyy+'-'+mm+'-'+dd; }
-
-    var CLIENTES = load(LS_KEYS.clientes, DEFAULT_CLIENTES.slice());
-    var PLANES   = load(LS_KEYS.planes, {});
-    var RUTAS    = load(LS_KEYS.rutas, { 'R-1':[], 'R-2':[], 'R-3':[], 'R-4':[], 'R-5':[] });
+    function load(key, fb){ try{ var raw=LS.getItem(key); return raw? JSON.parse(raw) : fb; }catch(_){ return fb; } }
+    function save(key, val){ try{ LS.setItem(key, JSON.stringify(val)); }catch(_){}}
 
     function $(sel){ return document.querySelector(sel); }
     function $all(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
 
+    var CLIENTES = load(LS_KEYS.clientes, DEFAULT_CLIENTES.slice());
+    if(!CLIENTES || !CLIENTES.length){ CLIENTES = DEFAULT_CLIENTES.slice(); save(LS_KEYS.clientes, CLIENTES); }
+    var PLANES   = load(LS_KEYS.planes, {});
+    var RUTAS    = load(LS_KEYS.rutas, { 'R-1':[], 'R-2':[], 'R-3':[], 'R-4':[], 'R-5':[] });
+
     // ======= Tabs =======
-    $all('.pill').forEach(function(p){ p.addEventListener('click', function(){
-      $all('.pill').forEach(function(x){ x.classList.remove('active'); });
-      p.classList.add('active');
-      var tab = p.getAttribute('data-tab');
-      $('#tab-plan').classList.toggle('hidden', tab!=='plan');
-      $('#tab-rutas').classList.toggle('hidden', tab!=='rutas');
-      $('#tab-clientes').classList.toggle('hidden', tab!=='clientes');
-      $('#tab-ayuda').classList.toggle('hidden', tab!=='ayuda');
-      if(tab==='rutas') renderRutas();
-    }); });
+    function setupTabs(){
+      $all('.pill').forEach(function(p){ p.addEventListener('click', function(){
+        $all('.pill').forEach(function(x){ x.classList.remove('active'); }); p.classList.add('active');
+        var tab = p.getAttribute('data-tab');
+        $('#tab-plan').classList.toggle('hidden', tab!=='plan');
+        $('#tab-rutas').classList.toggle('hidden', tab!=='rutas');
+        $('#tab-clientes').classList.toggle('hidden', tab!=='clientes');
+        $('#tab-ayuda').classList.toggle('hidden', tab!=='ayuda');
+        if(tab==='rutas') renderRutas();
+      }); });
+    }
 
     // ======= Plan diario =======
-    function setToday(){ $('#fecha').value = todayStr(); }
-    if(!$('#fecha').value) setToday();
+    function initFecha(){ var f=$('#fecha'); if(f && !f.value){ var t=todayStr(); f.value=t; } }
 
     function renderLista(){
-      var cont = $('#lista');
-      var filtro = ($('#buscador').value||'').toLowerCase();
-      var key = dateKey(new Date($('#fecha').value));
+      var cont = $('#lista'); if(!cont) return;
+      var busc = $('#buscador'); var filtro = (busc && busc.value || '').toLowerCase();
+      var f = $('#fecha'); var key = dateKey(new Date(f && f.value ? f.value : todayStr()));
       var seleccionados = new Set(PLANES[key]||[]);
       var visibles = CLIENTES.filter(function(c){ return c.toLowerCase().indexOf(filtro)!==-1; });
       cont.innerHTML = '';
+      if(visibles.length===0){ var empty=document.createElement('div'); empty.className='item'; empty.innerHTML='<div class="muted">No hay clientes que coincidan con la búsqueda.</div>'; cont.appendChild(empty); }
       visibles.forEach(function(nombre){
         var id = 'c-'+nombre.replace(/[^a-z0-9]+/gi,'-');
-        var div = document.createElement('label');
-        div.className = 'item';
+        var div = document.createElement('label'); div.className = 'item';
         div.innerHTML = '<input type="checkbox" id="'+id+'">'+
           '<div><div><strong>'+nombre+'</strong></div><div class="muted">Pulsa para incluir en el plan del día.</div></div>';
-        var chk = div.querySelector('input');
-        chk.checked = seleccionados.has(nombre);
+        var chk = div.querySelector('input'); chk.checked = seleccionados.has(nombre);
         chk.addEventListener('change', function(){
           if(chk.checked){ seleccionados.add(nombre); } else { seleccionados.delete(nombre); }
-          PLANES[key] = Array.from(seleccionados);
-          save(LS_KEYS.planes, PLANES);
-          updateToggleAll();
+          PLANES[key] = Array.from(seleccionados); save(LS_KEYS.planes, PLANES); updateToggleAll();
         });
         cont.appendChild(div);
       });
-      $('#count').textContent = visibles.length + ' / ' + CLIENTES.length;
+      var cnt=$('#count'); if(cnt) cnt.textContent = visibles.length + ' / ' + CLIENTES.length;
       updateToggleAll();
     }
 
     function updateToggleAll(){
-      var key = dateKey(new Date($('#fecha').value));
+      var f=$('#fecha'); var key = dateKey(new Date(f && f.value ? f.value : todayStr()));
       var seleccionados = new Set(PLANES[key]||[]);
-      var filtro = ($('#buscador').value||'').toLowerCase();
+      var filtro = ($('#buscador') && $('#buscador').value || '').toLowerCase();
       var visibles = CLIENTES.filter(function(c){ return c.toLowerCase().indexOf(filtro)!==-1; });
       var allSelected = visibles.length>0 && visibles.every(function(c){ return seleccionados.has(c); });
-      $('#toggleAll').checked = allSelected;
+      var t=$('#toggleAll'); if(t) t.checked = allSelected;
     }
 
-    $('#fecha').addEventListener('change', renderLista);
-    $('#hoy').addEventListener('click', function(){ setToday(); renderLista(); });
-    $('#buscador').addEventListener('input', renderLista);
-    $('#clearSearch').addEventListener('click', function(){ $('#buscador').value=''; renderLista(); $('#buscador').focus(); });
-
-    $('#toggleAll').addEventListener('change', function(e){
-      var key = dateKey(new Date($('#fecha').value));
-      var filtro = ($('#buscador').value||'').toLowerCase();
-      var visibles = CLIENTES.filter(function(c){ return c.toLowerCase().indexOf(filtro)!==-1; });
-      if(e.target.checked){
-        var set = new Set(PLANES[key]||[]);
-        visibles.forEach(function(v){ set.add(v); });
-        PLANES[key] = Array.from(set);
-      } else {
-        var remain = new Set(PLANES[key]||[]);
-        visibles.forEach(function(v){ remain.delete(v); });
-        PLANES[key] = Array.from(remain);
-      }
-      save(LS_KEYS.planes, PLANES);
-      renderLista();
-    });
-
-    $('#guardar').addEventListener('click', function(){ alert('¡Día guardado!'); });
-    $('#vaciar').addEventListener('click', function(){
-      if(confirm('¿Seguro que quieres vaciar la selección de este día?')){
-        var key = dateKey(new Date($('#fecha').value));
-        PLANES[key] = [];
-        save(LS_KEYS.planes, PLANES);
-        renderLista();
-      }
-    });
-    $('#imprimir').addEventListener('click', function(){ window.print(); });
+    function setupPlanEvents(){
+      $('#fecha') && $('#fecha').addEventListener('change', renderLista);
+      $('#hoy') && $('#hoy').addEventListener('click', function(){ initFecha(); renderLista(); });
+      $('#buscador') && $('#buscador').addEventListener('input', renderLista);
+      $('#clearSearch') && $('#clearSearch').addEventListener('click', function(){ $('#buscador').value=''; renderLista(); $('#buscador').focus(); });
+      $('#toggleAll') && $('#toggleAll').addEventListener('change', function(e){
+        var f=$('#fecha'); var key = dateKey(new Date(f && f.value ? f.value : todayStr()));
+        var filtro = ($('#buscador') && $('#buscador').value || '').toLowerCase();
+        var visibles = CLIENTES.filter(function(c){ return c.toLowerCase().indexOf(filtro)!==-1; });
+        if(e.target.checked){ var set = new Set(PLANES[key]||[]); visibles.forEach(function(v){ set.add(v); }); PLANES[key] = Array.from(set); }
+        else { var remain = new Set(PLANES[key]||[]); visibles.forEach(function(v){ remain.delete(v); }); PLANES[key] = Array.from(remain); }
+        save(LS_KEYS.planes, PLANES); renderLista();
+      });
+      $('#guardar') && $('#guardar').addEventListener('click', function(){ alert('¡Día guardado!'); });
+      $('#vaciar') && $('#vaciar').addEventListener('click', function(){ if(confirm('¿Vaciar selección del día?')){ var f=$('#fecha'); var key=dateKey(new Date(f&&f.value?f.value:todayStr())); PLANES[key]=[]; save(LS_KEYS.planes, PLANES); renderLista(); }});
+      $('#imprimir') && $('#imprimir').addEventListener('click', function(){ window.print(); });
+      $('#resetApp') && $('#resetApp').addEventListener('click', function(){ if(confirm('Esto borra datos guardados (clientes/planes/rutas) y restaura el original. ¿Continuar?')){ LS.removeItem(LS_KEYS.clientes); LS.removeItem(LS_KEYS.planes); LS.removeItem(LS_KEYS.rutas); location.reload(); } });
+    }
 
     // ======= Clientes (admin) =======
     function renderClientesAdmin(){
-      var box = $('#clientesList'); box.innerHTML = '';
+      var box = $('#clientesList'); if(!box) return; box.innerHTML = '';
       CLIENTES.forEach(function(c,i){
         var row = document.createElement('div'); row.className='item';
         row.innerHTML = '<div class="grow"><strong>'+c+'</strong></div><button data-del="'+i+'">Eliminar</button>';
-        row.querySelector('button').addEventListener('click', function(){
-          if(confirm('¿Eliminar "'+c+'" del listado?')){
-            CLIENTES.splice(i,1); save(LS_KEYS.clientes, CLIENTES); renderClientesAdmin(); renderLista();
-          }
-        });
+        row.querySelector('button').addEventListener('click', function(){ if(confirm('¿Eliminar "'+c+'" del listado?')){ CLIENTES.splice(i,1); save(LS_KEYS.clientes, CLIENTES); renderClientesAdmin(); renderLista(); } });
         box.appendChild(row);
       });
     }
-
-    $('#addCliente').addEventListener('click', function(){
-      var v = ($('#nuevoCliente').value||'').trim(); if(!v) return;
-      if(CLIENTES.indexOf(v)===-1) CLIENTES.push(v);
-      CLIENTES = Array.from(new Set(CLIENTES)).sort(function(a,b){ return a.localeCompare(b); });
-      save(LS_KEYS.clientes, CLIENTES);
-      $('#nuevoCliente').value='';
-      renderClientesAdmin();
-      renderLista();
-    });
-
-    $('#bulkAdd').addEventListener('click', function(){
-      var lines = ($('#bulk').value||'').split(/
+    function setupClientes(){
+      $('#addCliente') && $('#addCliente').addEventListener('click', function(){
+        var v = ($('#nuevoCliente') && $('#nuevoCliente').value || '').trim(); if(!v) return;
+        if(CLIENTES.indexOf(v)===-1) CLIENTES.push(v);
+        CLIENTES = Array.from(new Set(CLIENTES)).sort(function(a,b){ return a.localeCompare(b); });
+        save(LS_KEYS.clientes, CLIENTES); $('#nuevoCliente').value=''; renderClientesAdmin(); renderLista();
+      });
+      $('#bulkAdd') && $('#bulkAdd').addEventListener('click', function(){
+        var lines = ($('#bulk') && $('#bulk').value || '').split(/
 ?
 /).map(function(s){return s.trim();}).filter(Boolean);
-      if(!lines.length) return;
-      CLIENTES = Array.from(new Set(CLIENTES.concat(lines))).sort(function(a,b){ return a.localeCompare(b); });
-      save(LS_KEYS.clientes, CLIENTES);
-      $('#bulk').value='';
-      renderClientesAdmin();
-      renderLista();
-    });
-
-    $('#resetClientes').addEventListener('click', function(){
-      if(confirm('¿Restablecer el listado al original?')){
-        CLIENTES = DEFAULT_CLIENTES.slice(); save(LS_KEYS.clientes, CLIENTES); renderClientesAdmin(); renderLista();
-      }
-    });
+        if(!lines.length) return; CLIENTES = Array.from(new Set(CLIENTES.concat(lines))).sort(function(a,b){ return a.localeCompare(b); });
+        save(LS_KEYS.clientes, CLIENTES); $('#bulk').value=''; renderClientesAdmin(); renderLista();
+      });
+      $('#resetClientes') && $('#resetClientes').addEventListener('click', function(){ if(confirm('¿Restaurar listado original?')){ CLIENTES = DEFAULT_CLIENTES.slice(); save(LS_KEYS.clientes, CLIENTES); renderClientesAdmin(); renderLista(); }});
+    }
 
     // ======= Rutas predefinidas =======
     function renderRutas(){
-      var box = $('#rutasBox'); box.innerHTML='';
-      ['R-1','R-2','R-3','R-4','R-5'].forEach(function(k){
+      var box = $('#rutasBox'); if(!box) return; box.innerHTML='';
+      ;['R-1','R-2','R-3','R-4','R-5'].forEach(function(k){
         var arr = RUTAS[k]||[];
         var det = document.createElement('details');
         det.innerHTML = '<summary>'+k+' <span class="muted">('+arr.length+' clientes)</span></summary>'+
@@ -307,44 +286,23 @@
           '</div></div>';
         box.appendChild(det);
       });
-
-      // Guardar
-      $all('[data-save]').forEach(function(btn){ btn.addEventListener('click', function(){
-        var k = btn.getAttribute('data-save');
-        var ta = document.getElementById('ta-'+k);
-        var lines = (ta.value||'').split(/
+      // Acciones
+      $all('[data-save]').forEach(function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-save'); var ta=document.getElementById('ta-'+k); var lines=(ta && ta.value || '').split(/
 ?
-/).map(function(s){return s.trim();}).filter(Boolean);
-        // quitamos duplicados y filtramos por clientes existentes
-        var uniq = Array.from(new Set(lines)).filter(function(c){ return CLIENTES.indexOf(c)!==-1; });
-        RUTAS[k] = uniq; save(LS_KEYS.rutas, RUTAS);
-        renderRutas();
-        alert('Ruta '+k+' guardada.');
-      }); });
-
-      // Aplicar
-      $all('[data-apply]').forEach(function(btn){ btn.addEventListener('click', function(){
-        var k = btn.getAttribute('data-apply');
-        var key = dateKey(new Date($('#fecha').value));
-        PLANES[key] = (RUTAS[k]||[]).slice();
-        save(LS_KEYS.planes, PLANES);
-        renderLista();
-        alert('Ruta '+k+' aplicada al día.');
-      }); });
-
-      // Vaciar ruta
-      $all('[data-clear]').forEach(function(btn){ btn.addEventListener('click', function(){
-        var k = btn.getAttribute('data-clear');
-        if(confirm('¿Vaciar por completo la ruta '+k+'?')){
-          RUTAS[k] = []; save(LS_KEYS.rutas, RUTAS); renderRutas();
-        }
-      }); });
+/).map(function(s){return s.trim();}).filter(Boolean); var uniq=Array.from(new Set(lines)).filter(function(c){ return CLIENTES.indexOf(c)!==-1; }); RUTAS[k]=uniq; save(LS_KEYS.rutas, RUTAS); renderRutas(); alert('Ruta '+k+' guardada.'); }); });
+      $all('[data-apply]').forEach(function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-apply'); var f=$('#fecha'); var key=dateKey(new Date(f&&f.value?f.value:todayStr())); PLANES[key]=(RUTAS[k]||[]).slice(); save(LS_KEYS.planes, PLANES); renderLista(); alert('Ruta '+k+' aplicada al día.'); }); });
+      $all('[data-clear]').forEach(function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-clear'); if(confirm('¿Vaciar por completo la ruta '+k+'?')){ RUTAS[k]=[]; save(LS_KEYS.rutas, RUTAS); renderRutas(); } }); });
     }
 
     // ======= Init =======
-    renderClientesAdmin();
-    renderLista();
-    renderRutas();
+    function init(){
+      setupTabs(); initFecha(); setupPlanEvents(); setupClientes();
+      renderClientesAdmin(); renderLista(); renderRutas();
+      setStatus('Listo ✅ · '+CLIENTES.length+' clientes', true);
+    }
+
+    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  })();
   </script>
 </body>
 </html>
