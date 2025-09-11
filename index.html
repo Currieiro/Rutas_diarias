@@ -1,308 +1,304 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Planificador Diario de Clientes</title>
-  <style>
-    :root{ --bg:#0b0c0e; --card:#121419; --ink:#eaeef3; --muted:#aab3c2; --accent:#5ee6a5; --line:#232731; }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial}
-    h1{font-size:clamp(1.2rem,2.8vw,1.8rem);margin:0}
-    .wrap{max-width:1050px;margin:auto;padding:22px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    .grow{flex:1}
-    input,textarea,button,.pill,select{border:1px solid var(--line);background:#0e1015;color:var(--ink);padding:12px 14px;border-radius:12px}
-    input[type="text"],input[type="search"],textarea{width:100%}
-    input.lg{font-size:1.05rem;padding:14px 16px}
-    textarea{min-height:120px;resize:vertical}
-    button{cursor:pointer}
-    .toolbar{gap:8px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:14px}
-    .item{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:12px}
-    .item input[type="checkbox"]{transform:scale(1.25);margin-top:3px}
-    .muted{color:var(--muted)}
-    .tabs{display:flex;gap:8px;margin-bottom:14px}
-    .pill{user-select:none}
-    .pill.active{outline:2px solid var(--accent);}
-    .split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .hidden{display:none}
-    .foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;color:var(--muted);font-size:13px}
-    .badge{border:1px solid var(--line);padding:2px 8px;border-radius:999px;font-size:12px}
-    .hint{font-size:13px;color:var(--muted)}
-    .searchWrap{display:flex;gap:8px;align-items:center;min-width:320px}
-    .searchWrap button{padding:10px 12px}
-    details{border:1px solid var(--line);border-radius:12px;padding:10px;background:#0e1015}
-    details+details{margin-top:10px}
-    summary{cursor:pointer;font-weight:700}
-    .status{margin:8px 0 14px 0; padding:10px 12px; border-radius:10px; background:#201a13; border:1px solid #3a2f22; color:#ffedc2; font-size:13px}
-    .ok{background:#132019;border-color:#284a33;color:#c6ffd7}
-    @media (max-width:860px){.split{grid-template-columns:1fr}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rutas de Clientes</title>
+<style>
+  :root { --gap:14px; --pad:14px; --radius:16px; --font:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
+  * { box-sizing: border-box; }
+  body { font-family: var(--font); margin: 0; background: #f6f7f9; color:#222; }
+  header { position: sticky; top:0; background: white; padding: var(--pad); box-shadow: 0 2px 10px rgba(0,0,0,.06); z-index: 2; }
+  h1 { font-size: 18px; margin: 0 0 6px; }
+  .row { display:flex; gap: var(--gap); align-items: center; flex-wrap: wrap; }
+  select, input, button, textarea { font-size: 16px; } /* iPhone friendly */
+  select, input[type="text"], textarea {
+    width: 100%; padding:12px; border:1px solid #d8dbe2; border-radius: var(--radius); background:#fff;
+  }
+  button {
+    padding: 12px 14px; border: none; border-radius: var(--radius); background:#0a7cff; color:white; font-weight:600;
+    box-shadow: 0 2px 8px rgba(10,124,255,.25); cursor:pointer;
+  }
+  button.secondary { background:#eef0f4; color:#222; box-shadow:none; }
+  button.warn { background:#ff3b30; }
+  main { padding: var(--pad); }
+  .card {
+    background: white; border:1px solid #e8ebf2; border-radius: var(--radius); padding: var(--pad);
+    box-shadow: 0 6px 24px rgba(0,0,0,.04);
+  }
+  ul { list-style: none; padding:0; margin:0; }
+  li {
+    display:flex; align-items:center; gap:10px; padding:12px; border:1px solid #edf0f6; border-radius:12px; margin-bottom:10px;
+    touch-action: manipulation;
+  }
+  li.done { opacity:.65; text-decoration: line-through; }
+  .toolbar { display:flex; gap:var(--gap); flex-wrap: wrap; margin-top: var(--gap); }
+  .muted { color:#6b7280; font-size: 13px; }
+  .editor { margin-top: var(--gap); display:none; }
+  .badge { background:#eef4ff; color:#0a7cff; font-weight:600; padding: 6px 10px; border-radius:999px; font-size: 12px; }
+  .pill { background:#f1f5f9; border-radius:999px; padding: 3px 8px; font-size:12px; }
+  .grid { display:grid; gap: var(--gap); }
+  .grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .danger-zone { border-top:1px dashed #e5e7eb; margin-top: var(--gap); padding-top: var(--gap); }
+  .footer-note { padding: var(--pad); color:#6b7280; font-size:12px; text-align:center; }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="row" style="margin-bottom:16px">
-      <h1>Planificador diario de clientes</h1>
-      <span class="badge" id="version">v1.1.1</span>
-      <div class="grow"></div>
-    </div>
-
-    <div id="status" class="status">Cargando…</div>
-
-    <div class="card">
-      <div class="tabs">
-        <div class="pill active" data-tab="plan">🗓️ Plan diario</div>
-        <div class="pill" data-tab="rutas">📦 Rutas predefinidas</div>
-        <div class="pill" data-tab="clientes">👥 Clientes</div>
-        <div class="pill" data-tab="ayuda">❓ Ayuda</div>
+  <header>
+    <h1>Rutas de Clientes <span class="badge">offline</span></h1>
+    <div class="row">
+      <label class="pill" for="rutaSelect">Ruta</label>
+      <select id="rutaSelect" aria-label="Selecciona una ruta">
+        <option value="Lunes">Lunes</option>
+        <option value="Martes">Martes</option>
+        <option value="Miércoles">Miércoles</option>
+        <option value="Jueves">Jueves</option>
+        <option value="Viernes">Viernes</option>
+      </select>
+      <div class="toolbar">
+        <button id="btnEditar" class="secondary">Editar rutas</button>
+        <button id="btnResetRuta" class="secondary">Reiniciar visitas de esta ruta</button>
+        <button id="btnResetTodas" class="secondary">Reiniciar TODAS las visitas</button>
       </div>
-
-      <!-- PLAN DIARIO -->
-      <section id="tab-plan">
-        <div class="row toolbar">
-          <label>
-            <span class="muted">Fecha</span><br>
-            <input type="date" id="fecha" />
-          </label>
-          <button id="hoy">Hoy</button>
-
-          <div class="grow"></div>
-
-          <div class="searchWrap grow" title="Buscar y limpiar con la X">
-            <div class="grow">
-              <span class="muted">Buscar cliente</span><br>
-              <input type="search" class="lg" id="buscador" placeholder="Escribe para filtrar…" />
-            </div>
-            <button id="clearSearch" title="Borrar búsqueda">✕</button>
-          </div>
-
-          <label style="display:flex;align-items:center;gap:8px">
-            <input type="checkbox" id="toggleAll"> Seleccionar todos
-          </label>
-
-          <button id="guardar">Guardar día</button>
-          <button id="vaciar">Vaciar día</button>
-          <button id="imprimir">Imprimir</button>
-          <button id="resetApp" title="Borrar datos guardados y restaurar">Reset app</button>
-        </div>
-
-        <div class="foot"><span class="muted">Clientes visibles: <span id="count"></span></span><span class="muted">Los datos se guardan en este navegador.</span></div>
-        <div id="lista" class="grid" aria-live="polite"></div>
-      </section>
-
-      <!-- RUTAS PREDEFINIDAS -->
-      <section id="tab-rutas" class="hidden">
-        <h3>Rutas predefinidas</h3>
-        <p class="hint">Edita las rutas R-1 a R-5. Escribe un cliente por línea y pulsa <em>Guardar</em>. Puedes <strong>Aplicar</strong> una ruta al día actual.</p>
-        <div id="rutasBox"></div>
-      </section>
-
-      <!-- CLIENTES -->
-      <section id="tab-clientes" class="hidden">
-        <div class="split">
-          <div>
-            <h3>Listado actual</h3>
-            <p class="hint">Puedes añadir o borrar clientes. Los cambios se guardan en este navegador.</p>
-            <div class="row">
-              <input class="grow" type="text" id="nuevoCliente" placeholder="Nombre del nuevo cliente" />
-              <button id="addCliente">Añadir</button>
-            </div>
-            <div id="clientesList" class="grid" style="margin-top:10px"></div>
-          </div>
-          <div>
-            <h3>Alta masiva</h3>
-            <p class="hint">Pega uno por línea. Evitamos duplicados automáticamente.</p>
-            <textarea id="bulk"></textarea>
-            <div class="row right">
-              <button id="bulkAdd">Añadir en bloque</button>
-              <button id="resetClientes">Resetear a listado original</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- AYUDA -->
-      <section id="tab-ayuda" class="hidden">
-        <h3>Cómo usarlo</h3>
-        <ol>
-          <li>Elige una <strong>fecha</strong> o pulsa <em>Hoy</em>.</li>
-          <li>Marca los <strong>clientes</strong> que quieras visitar ese día.</li>
-          <li>Pulsa <strong>Guardar día</strong>. ¡Listo!</li>
-          <li>Para rutas fijas, edita y aplica tus <strong>R-1…R-5</strong> en la pestaña de Rutas.</li>
-        </ol>
-        <p class="hint">Truco: filtra por "GOIKO" y usa <em>Seleccionar todos</em> para marcar solo esos.</p>
-      </section>
     </div>
+  </header>
 
-    <div class="foot">
-      <span>Hecho con ☕️ para que organizes tus rutas sin líos.</span>
-      <span class="muted">Datos locales • Sin conexión • 100% tuyo</span>
-    </div>
-  </div>
+  <main>
+    <section id="lista" class="card">
+      <h2 style="margin:0 0 10px;">Clientes de <span id="rutaTitulo">Lunes</span></h2>
+      <ul id="clientesUl" aria-live="polite"></ul>
+      <p id="vacioMsg" class="muted" style="display:none;">No hay clientes en esta ruta. Pulsa <b>Editar rutas</b> para añadir.</p>
+    </section>
 
-  <script>
-  (function(){
-    var statusEl = document.getElementById('status');
-    function setStatus(msg, ok){ statusEl.className = 'status'+(ok?' ok':''); statusEl.textContent = msg; }
-    function showError(e){ setStatus('⚠️ '+(e && (e.message||e)),''); }
-    window.addEventListener('error', function(e){ showError(e.error||e.message); });
-    window.addEventListener('unhandledrejection', function(e){ showError(e.reason||'Error desconocido'); });
+    <section id="editor" class="card editor" aria-hidden="true">
+      <h3 style="margin:0 0 10px;">Editar <span id="rutaEditTitulo">Lunes</span></h3>
+      <div class="grid">
+        <input id="nuevoCliente" type="text" placeholder="Nombre del cliente (ej. BAR PEPE)">
+        <div class="grid cols-2">
+          <button id="btnAdd">Añadir cliente</button>
+          <button id="btnGuardar" class="secondary">Guardar cambios</button>
+        </div>
+      </div>
+      <ul id="editorUl" style="margin-top:12px;"></ul>
 
-    function todayStr(){ var now=new Date(); var yyyy=now.getFullYear(); var mm=('0'+(now.getMonth()+1)).slice(-2); var dd=('0'+now.getDate()).slice(-2); return yyyy+'-'+mm+'-'+dd; }
-    function dateKey(d){ var yyyy=d.getFullYear(); var mm=('0'+(d.getMonth()+1)).slice(-2); var dd=('0'+d.getDate()).slice(-2); return yyyy+'-'+mm+'-'+dd; }
+      <div class="danger-zone">
+        <div class="grid">
+          <button id="btnExport" class="secondary">Exportar rutas (copia/pega)</button>
+          <button id="btnImport" class="secondary">Importar rutas (pegar JSON)</button>
+          <textarea id="jsonBox" rows="6" placeholder='Aquí verás/pegarás el JSON de tus rutas' style="display:none;"></textarea>
+        </div>
+      </div>
+    </section>
+  </main>
 
-    // ======= Semilla desde tu PDF (actualizada) =======
-    var DEFAULT_CLIENTES = [
-      "RTE L'ESTONETA","RTE PIPA","MARIMBA","EL PEDREGAL","LES CATIVAS","BAR RESTAURANTE POMA","A PROP TEU","TIENDA RONDA SANT ANTONI","O BURATO BAR","BAR CAFETERIA MARIANA","MANDONI PEDRALBES","TEATRO NACIONAL DE CATALUNYA","RESTAURANT CENT FOCS","HOTEL MESON CASTILLA","BAR RTE LEPANTO","CAFE ILUSIONA BY MUXIA","EL MOLI PAN Y CAFE SANTS","OMBU,RTE","DAMAIA, BAR","EXE RAMBLAS BOQUERIA","PLEASE PLATS","RESTAURANTE HONKAKU II","O CANTO RESTAURANTE","SARA TAPES","HOTEL SB GLOW","TOC HOSTAL GRAN VIA","HOTEL SB ICARIA BARCELONA","CAFETERIA DOMI","TIENDA JOAQUIM VALLS","GOIKO GRILL CARRER CAN SEGALAR","EL FOC DEN CANIGO","GOIKO GRILL GRAN VIA DE LES CORTS","LA FILOMENA BAR","GOIKO GRILL CARRER INDEPENDENCIA","GOIKO GRILL BRUC","GOIKO GRILL C.C. SOM MULTIESPAI","EUROSTARS ANGLI","BAR CAÑAS","GOIKO GRILL PASSEIG SANT JOAN","GARBI","SETEMBRE","LA CASSOLETA","GOIKO GRILL CARRER D'ARIBAU","TIENDA TORRES I BAGES","ATICCO PASSEIG DE GRÀCIA CANTINA","EXE LAIETANA PALACE","TIENDA MERIDIANA II","EUROSTARS CRISTAL PALACE","RIAS DE GALICIA RTE","MIRADOR SANT JUST","IKONIK RAMBLAS","GOIKO MARAGALL","CASA DE TAPAS LA CAÑOTA","GOIKO GRILL LAIETANA","ALTIMA HOSPITALET GRAN VIA","RINCON GALEGO","BAR EUROPA","RESTAURANTE SUKAPA","ANTOTXO","RTE ZHU ZHU","EXE PLAZA CATALUNYA 4","EUROSTARS MONUMENTAL","EUROSTARS MITRE","TIENDA SANT VICENÇ DELS HORTS","FORN VELL INDUSTRIA","FORN VELL CLARET","TIENDA VIA JULIA","VALDAURA","PIPA S CAFETERIA","RESTAURANTE LA GORMANDA","BAR BUC","TOSTA BAR","ADELITA RESTAURANTE","MOLI PAN Y CAFE ZONA FRANCA","LOKAL","BATEA","BAR LOS PINOS 2","TSUKIMI","LA PALMERA","EL MIRALL DELS ENCANTS","LOMO ALTO","HOTEL ORIENTE","HOTEL ARENAS","HOTEL TRES TORRES","ESCAIRON","LA RUTA GALLEGA","TIENDA CLOT","LA BRASA RESTAURANTE","RTE ANCARES","A DUES RODES","CAFETERIA RONDA SANT BOI","TIENDA LES CORTS","LA LLAR DEL MERCAT 2 SANT BOI","HOTEL SB WIN SANT FELIU","LOS 3 ARCOS BAR","RTE MAMETORA","BOEDO","O RINCON GALLEGO MERIDIANA","R.U. COSMOPOLITAN","FRANKFURT TOLIK","CIURIS","CAFETERIA LEROY MERLIN SANT BOI","BAR DE BO","ESCUELA JUDICIAL BCN","O MEU LAR","EL CARQUINYOLI","NON SOLO CREPS","GREENVITA NUMANCIA","K10 SUSHI SANT BOI","EL RACONET D'URGELL","TIENDA EL TALLER SANT BOI","CHALITO BCN.","HOTEL FRONTAIR CONGRESS","CLUB TIRO MONTJUIT","FRANKFURT SANTS","R.U. EMILIE DE VILLENUEVE","SOLUCIONS SOCIALS INSERCIO","ALTIMA SANT BOI","FUNDACIO ASPACE CATALUNYA","GREEN VITA GLORIES","ATICCO PASSEIG DE GRÀCIA OFICINA","70/30","ORDAL","PESSEBRE","BUFFS DE FARINA","TIENDA TALLER VALLDAURA","ARTESANO","HELADERÍA ADRI GELATIAMO","CUATRECASAS","SET POINT"
-    ];
+  <div class="footer-note">Consejo ninja: añade esta página a la pantalla de inicio del iPhone para abrirla como app.</div>
 
-    // ======= Storage (blindado) =======
-    var LS = (function(){ try{ var t='__t__'; localStorage.setItem(t,'1'); localStorage.removeItem(t); return localStorage; }catch(_){ var mem={}; return {getItem:function(k){return mem[k]||null;}, setItem:function(k,v){mem[k]=String(v);}, removeItem:function(k){delete mem[k];}}; }})();
-    var LS_KEYS = { clientes:'clientes', planes:'planes', rutas:'rutasPredef' };
-    function load(key, fb){ try{ var raw=LS.getItem(key); return raw? JSON.parse(raw) : fb; }catch(_){ return fb; } }
-    function save(key, val){ try{ LS.setItem(key, JSON.stringify(val)); }catch(_){}}
+<script>
+/* ========= Claves de almacenamiento ========= */
+const LS_ROUTES_KEY = 'routes_v1';                 // rutas predefinidas (editables)
+const LS_PROGRESS_PREFIX = 'progress_v1_';         // progreso por ruta (checks)
 
-    function $(sel){ return document.querySelector(sel); }
-    function $all(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+/* ========= Rutas por defecto (edítalas o impórtalas) ========= */
+const DEFAULT_ROUTES = {
+  "Lunes":    ["RTE L'ESTONETA","RTE PIPA","MARIMBA"],
+  "Martes":   ["EL PEDREGAL","LES CATIVAS","BAR RESTAURANTE POMA"],
+  "Miércoles":[],
+  "Jueves":   [],
+  "Viernes":  []
+};
 
-    var CLIENTES = load(LS_KEYS.clientes, DEFAULT_CLIENTES.slice());
-    if(!CLIENTES || !CLIENTES.length){ CLIENTES = DEFAULT_CLIENTES.slice(); save(LS_KEYS.clientes, CLIENTES); }
-    var PLANES   = load(LS_KEYS.planes, {});
-    var RUTAS    = load(LS_KEYS.rutas, { 'R-1':[], 'R-2':[], 'R-3':[], 'R-4':[], 'R-5':[] });
+/* ========= Utilidades ========= */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-    // ======= Tabs =======
-    function setupTabs(){
-      $all('.pill').forEach(function(p){ p.addEventListener('click', function(){
-        $all('.pill').forEach(function(x){ x.classList.remove('active'); }); p.classList.add('active');
-        var tab = p.getAttribute('data-tab');
-        $('#tab-plan').classList.toggle('hidden', tab!=='plan');
-        $('#tab-rutas').classList.toggle('hidden', tab!=='rutas');
-        $('#tab-clientes').classList.toggle('hidden', tab!=='clientes');
-        $('#tab-ayuda').classList.toggle('hidden', tab!=='ayuda');
-        if(tab==='rutas') renderRutas();
-      }); });
-    }
+function loadRoutes() {
+  try {
+    const raw = localStorage.getItem(LS_ROUTES_KEY);
+    if (!raw) return { ...DEFAULT_ROUTES };
+    const parsed = JSON.parse(raw);
+    // Asegurar que existan las 5 rutas aunque falten en el JSON
+    return { ...DEFAULT_ROUTES, ...parsed };
+  } catch (_) {
+    return { ...DEFAULT_ROUTES };
+  }
+}
+function saveRoutes(routes) {
+  localStorage.setItem(LS_ROUTES_KEY, JSON.stringify(routes));
+}
 
-    // ======= Plan diario =======
-    function initFecha(){ var f=$('#fecha'); if(f && !f.value){ var t=todayStr(); f.value=t; } }
+function loadProgress(routeName) {
+  try {
+    const raw = localStorage.getItem(LS_PROGRESS_PREFIX + routeName);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch (_) { return new Set(); }
+}
+function saveProgress(routeName, set) {
+  localStorage.setItem(LS_PROGRESS_PREFIX + routeName, JSON.stringify(Array.from(set)));
+}
 
-    function renderLista(){
-      var cont = $('#lista'); if(!cont) return;
-      var busc = $('#buscador'); var filtro = (busc && busc.value || '').toLowerCase();
-      var f = $('#fecha'); var key = dateKey(new Date(f && f.value ? f.value : todayStr()));
-      var seleccionados = new Set(PLANES[key]||[]);
-      var visibles = CLIENTES.filter(function(c){ return c.toLowerCase().indexOf(filtro)!==-1; });
-      cont.innerHTML = '';
-      if(visibles.length===0){ var empty=document.createElement('div'); empty.className='item'; empty.innerHTML='<div class="muted">No hay clientes que coincidan con la búsqueda.</div>'; cont.appendChild(empty); }
-      visibles.forEach(function(nombre){
-        var id = 'c-'+nombre.replace(/[^a-z0-9]+/gi,'-');
-        var div = document.createElement('label'); div.className = 'item';
-        div.innerHTML = '<input type="checkbox" id="'+id+'">'+
-          '<div><div><strong>'+nombre+'</strong></div><div class="muted">Pulsa para incluir en el plan del día.</div></div>';
-        var chk = div.querySelector('input'); chk.checked = seleccionados.has(nombre);
-        chk.addEventListener('change', function(){
-          if(chk.checked){ seleccionados.add(nombre); } else { seleccionados.delete(nombre); }
-          PLANES[key] = Array.from(seleccionados); save(LS_KEYS.planes, PLANES); updateToggleAll();
-        });
-        cont.appendChild(div);
-      });
-      var cnt=$('#count'); if(cnt) cnt.textContent = visibles.length + ' / ' + CLIENTES.length;
-      updateToggleAll();
-    }
+function toast(msg) {
+  // Simple vibración visual (accesible y mínima para iPhone)
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.position='fixed'; t.style.left='50%'; t.style.bottom='18px'; t.style.transform='translateX(-50%)';
+  t.style.background='rgba(0,0,0,.85)'; t.style.color='white'; t.style.padding='10px 14px'; t.style.borderRadius='999px';
+  t.style.fontSize='14px'; t.style.zIndex='9999';
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .3s'; t.style.opacity='0'; }, 900);
+  setTimeout(()=> t.remove(), 1300);
+}
 
-    function updateToggleAll(){
-      var f=$('#fecha'); var key = dateKey(new Date(f && f.value ? f.value : todayStr()));
-      var seleccionados = new Set(PLANES[key]||[]);
-      var filtro = ($('#buscador') && $('#buscador').value || '').toLowerCase();
-      var visibles = CLIENTES.filter(function(c){ return c.toLowerCase().indexOf(filtro)!==-1; });
-      var allSelected = visibles.length>0 && visibles.every(function(c){ return seleccionados.has(c); });
-      var t=$('#toggleAll'); if(t) t.checked = allSelected;
-    }
+/* ========= Estado de la app ========= */
+let ROUTES = loadRoutes();                  // objeto {Ruta:[clientes...]}
+let CURRENT_ROUTE = $('#rutaSelect').value; // string
+let PROGRESS = loadProgress(CURRENT_ROUTE); // Set de clientes hechos (por nombre exacto)
 
-    function setupPlanEvents(){
-      $('#fecha') && $('#fecha').addEventListener('change', renderLista);
-      $('#hoy') && $('#hoy').addEventListener('click', function(){ initFecha(); renderLista(); });
-      $('#buscador') && $('#buscador').addEventListener('input', renderLista);
-      $('#clearSearch') && $('#clearSearch').addEventListener('click', function(){ $('#buscador').value=''; renderLista(); $('#buscador').focus(); });
-      $('#toggleAll') && $('#toggleAll').addEventListener('change', function(e){
-        var f=$('#fecha'); var key = dateKey(new Date(f && f.value ? f.value : todayStr()));
-        var filtro = ($('#buscador') && $('#buscador').value || '').toLowerCase();
-        var visibles = CLIENTES.filter(function(c){ return c.toLowerCase().indexOf(filtro)!==-1; });
-        if(e.target.checked){ var set = new Set(PLANES[key]||[]); visibles.forEach(function(v){ set.add(v); }); PLANES[key] = Array.from(set); }
-        else { var remain = new Set(PLANES[key]||[]); visibles.forEach(function(v){ remain.delete(v); }); PLANES[key] = Array.from(remain); }
-        save(LS_KEYS.planes, PLANES); renderLista();
-      });
-      $('#guardar') && $('#guardar').addEventListener('click', function(){ alert('¡Día guardado!'); });
-      $('#vaciar') && $('#vaciar').addEventListener('click', function(){ if(confirm('¿Vaciar selección del día?')){ var f=$('#fecha'); var key=dateKey(new Date(f&&f.value?f.value:todayStr())); PLANES[key]=[]; save(LS_KEYS.planes, PLANES); renderLista(); }});
-      $('#imprimir') && $('#imprimir').addEventListener('click', function(){ window.print(); });
-      $('#resetApp') && $('#resetApp').addEventListener('click', function(){ if(confirm('Esto borra datos guardados (clientes/planes/rutas) y restaura el original. ¿Continuar?')){ LS.removeItem(LS_KEYS.clientes); LS.removeItem(LS_KEYS.planes); LS.removeItem(LS_KEYS.rutas); location.reload(); } });
-    }
+/* ========= Pintar lista de clientes ========= */
+function renderList() {
+  $('#rutaTitulo').textContent = CURRENT_ROUTE;
+  const ul = $('#clientesUl');
+  ul.innerHTML = '';
+  const clientes = ROUTES[CURRENT_ROUTE] || [];
+  $('#vacioMsg').style.display = clientes.length ? 'none' : 'block';
 
-    // ======= Clientes (admin) =======
-    function renderClientesAdmin(){
-      var box = $('#clientesList'); if(!box) return; box.innerHTML = '';
-      CLIENTES.forEach(function(c,i){
-        var row = document.createElement('div'); row.className='item';
-        row.innerHTML = '<div class="grow"><strong>'+c+'</strong></div><button data-del="'+i+'">Eliminar</button>';
-        row.querySelector('button').addEventListener('click', function(){ if(confirm('¿Eliminar "'+c+'" del listado?')){ CLIENTES.splice(i,1); save(LS_KEYS.clientes, CLIENTES); renderClientesAdmin(); renderLista(); } });
-        box.appendChild(row);
-      });
-    }
-    function setupClientes(){
-      $('#addCliente') && $('#addCliente').addEventListener('click', function(){
-        var v = ($('#nuevoCliente') && $('#nuevoCliente').value || '').trim(); if(!v) return;
-        if(CLIENTES.indexOf(v)===-1) CLIENTES.push(v);
-        CLIENTES = Array.from(new Set(CLIENTES)).sort(function(a,b){ return a.localeCompare(b); });
-        save(LS_KEYS.clientes, CLIENTES); $('#nuevoCliente').value=''; renderClientesAdmin(); renderLista();
-      });
-      $('#bulkAdd') && $('#bulkAdd').addEventListener('click', function(){
-        var lines = ($('#bulk') && $('#bulk').value || '').split(/
-?
-/).map(function(s){return s.trim();}).filter(Boolean);
-        if(!lines.length) return; CLIENTES = Array.from(new Set(CLIENTES.concat(lines))).sort(function(a,b){ return a.localeCompare(b); });
-        save(LS_KEYS.clientes, CLIENTES); $('#bulk').value=''; renderClientesAdmin(); renderLista();
-      });
-      $('#resetClientes') && $('#resetClientes').addEventListener('click', function(){ if(confirm('¿Restaurar listado original?')){ CLIENTES = DEFAULT_CLIENTES.slice(); save(LS_KEYS.clientes, CLIENTES); renderClientesAdmin(); renderLista(); }});
-    }
+  clientes.forEach(name => {
+    const li = document.createElement('li');
+    const cb = document.createElement('input');
+    cb.type='checkbox';
+    cb.checked = PROGRESS.has(name);
+    cb.setAttribute('aria-label', `Visita a ${name}`);
+    cb.addEventListener('change', () => {
+      if (cb.checked) PROGRESS.add(name); else PROGRESS.delete(name);
+      saveProgress(CURRENT_ROUTE, PROGRESS);
+      li.classList.toggle('done', cb.checked);
+    });
+    const label = document.createElement('label');
+    label.textContent = name;
+    li.appendChild(cb);
+    li.appendChild(label);
+    li.classList.toggle('done', cb.checked);
+    ul.appendChild(li);
+  });
+}
 
-    // ======= Rutas predefinidas =======
-    function renderRutas(){
-      var box = $('#rutasBox'); if(!box) return; box.innerHTML='';
-      ;['R-1','R-2','R-3','R-4','R-5'].forEach(function(k){
-        var arr = RUTAS[k]||[];
-        var det = document.createElement('details');
-        det.innerHTML = '<summary>'+k+' <span class="muted">('+arr.length+' clientes)</span></summary>'+
-          '<div style="margin-top:8px">'+
-          '<p class="hint">Edita (uno por línea):</p>'+
-          '<textarea id="ta-'+k+'">'+arr.join('
-')+'</textarea>'+
-          '<div class="row right" style="margin-top:8px">'+
-          '<button data-save="'+k+'">Guardar</button>'+ 
-          '<button data-apply="'+k+'">Aplicar al día</button>'+ 
-          '<button data-clear="'+k+'">Vaciar</button>'+ 
-          '</div></div>';
-        box.appendChild(det);
-      });
-      // Acciones
-      $all('[data-save]').forEach(function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-save'); var ta=document.getElementById('ta-'+k); var lines=(ta && ta.value || '').split(/
-?
-/).map(function(s){return s.trim();}).filter(Boolean); var uniq=Array.from(new Set(lines)).filter(function(c){ return CLIENTES.indexOf(c)!==-1; }); RUTAS[k]=uniq; save(LS_KEYS.rutas, RUTAS); renderRutas(); alert('Ruta '+k+' guardada.'); }); });
-      $all('[data-apply]').forEach(function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-apply'); var f=$('#fecha'); var key=dateKey(new Date(f&&f.value?f.value:todayStr())); PLANES[key]=(RUTAS[k]||[]).slice(); save(LS_KEYS.planes, PLANES); renderLista(); alert('Ruta '+k+' aplicada al día.'); }); });
-      $all('[data-clear]').forEach(function(btn){ btn.addEventListener('click', function(){ var k=btn.getAttribute('data-clear'); if(confirm('¿Vaciar por completo la ruta '+k+'?')){ RUTAS[k]=[]; save(LS_KEYS.rutas, RUTAS); renderRutas(); } }); });
-    }
+/* ========= Cambio de ruta ========= */
+$('#rutaSelect').addEventListener('change', e => {
+  CURRENT_ROUTE = e.target.value;
+  PROGRESS = loadProgress(CURRENT_ROUTE);
+  // Ocultar editor si estaba abierto, para evitar confusiones
+  closeEditor();
+  renderList();
+});
 
-    // ======= Init =======
-    function init(){
-      setupTabs(); initFecha(); setupPlanEvents(); setupClientes();
-      renderClientesAdmin(); renderLista(); renderRutas();
-      setStatus('Listo ✅ · '+CLIENTES.length+' clientes', true);
-    }
+/* ========= Reiniciar visitas ========= */
+$('#btnResetRuta').addEventListener('click', () => {
+  const ok = confirm(`¿Reiniciar las visitas marcadas de "${CURRENT_ROUTE}"?`);
+  if (!ok) return;
+  PROGRESS = new Set();
+  saveProgress(CURRENT_ROUTE, PROGRESS);
+  renderList();
+  toast('Ruta reiniciada');
+});
+$('#btnResetTodas').addEventListener('click', () => {
+  const ok = confirm('¿Reiniciar TODAS las visitas marcadas (todas las rutas)?');
+  if (!ok) return;
+  Object.keys(ROUTES).forEach(r => localStorage.removeItem(LS_PROGRESS_PREFIX + r));
+  PROGRESS = loadProgress(CURRENT_ROUTE);
+  renderList();
+  toast('Todas las visitas reiniciadas');
+});
 
-    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
-  })();
-  </script>
+/* ========= Editor de rutas (añadir/quitar clientes) ========= */
+const editor = $('#editor');
+const editorUl = $('#editorUl');
+const nuevoCliente = $('#nuevoCliente');
+
+function openEditor() {
+  $('#rutaEditTitulo').textContent = CURRENT_ROUTE;
+  editorUl.innerHTML = '';
+  const lista = ROUTES[CURRENT_ROUTE] || [];
+  lista.forEach((name, idx) => {
+    const li = document.createElement('li');
+    const span = document.createElement('span'); span.textContent = name; span.style.flex='1';
+    const del = document.createElement('button'); del.textContent='Eliminar'; del.className='secondary';
+    del.addEventListener('click', () => {
+      ROUTES[CURRENT_ROUTE].splice(idx,1);
+      saveRoutes(ROUTES);
+      // También quitamos el progreso de ese cliente en esta ruta si existía
+      PROGRESS.delete(name); saveProgress(CURRENT_ROUTE, PROGRESS);
+      openEditor(); // recargar editor
+      renderList(); // refrescar lista principal
+    });
+    li.appendChild(span); li.appendChild(del);
+    editorUl.appendChild(li);
+  });
+  editor.style.display='block';
+  editor.setAttribute('aria-hidden','false');
+  $('#btnEditar').textContent = 'Cerrar editor';
+}
+function closeEditor() {
+  editor.style.display='none';
+  editor.setAttribute('aria-hidden','true');
+  $('#btnEditar').textContent = 'Editar rutas';
+}
+$('#btnEditar').addEventListener('click', () => {
+  const open = editor.style.display === 'block';
+  open ? closeEditor() : openEditor();
+});
+
+$('#btnAdd').addEventListener('click', () => {
+  const name = (nuevoCliente.value || '').trim();
+  if (!name) { toast('Escribe un nombre'); return; }
+  if (!ROUTES[CURRENT_ROUTE]) ROUTES[CURRENT_ROUTE] = [];
+  ROUTES[CURRENT_ROUTE].push(name);
+  saveRoutes(ROUTES);
+  nuevoCliente.value='';
+  openEditor();   // repinta editor
+  renderList();   // repinta lista
+  toast('Cliente añadido');
+});
+
+$('#btnGuardar').addEventListener('click', () => {
+  saveRoutes(ROUTES);
+  toast('Rutas guardadas');
+});
+
+/* ========= Exportar / Importar (backup por texto) ========= */
+const jsonBox = $('#jsonBox');
+$('#btnExport').addEventListener('click', () => {
+  jsonBox.style.display='block';
+  jsonBox.value = JSON.stringify(ROUTES, null, 2);
+  jsonBox.focus(); jsonBox.select();
+  toast('Copiado listo para pegar');
+});
+$('#btnImport').addEventListener('click', () => {
+  const visible = jsonBox.style.display === 'block';
+  if (!visible) { jsonBox.style.display='block'; jsonBox.value=''; jsonBox.placeholder='Pega aquí tu JSON y vuelve a pulsar Importar'; return; }
+  try {
+    const parsed = JSON.parse(jsonBox.value);
+    // Validación mínima: asegurar 5 rutas
+    const needed = ["Lunes","Martes","Miércoles","Jueves","Viernes"];
+    needed.forEach(k => { if (!Array.isArray(parsed[k])) parsed[k]=[]; });
+    ROUTES = parsed;
+    saveRoutes(ROUTES);
+    PROGRESS = loadProgress(CURRENT_ROUTE);
+    renderList();
+    openEditor();
+    toast('Rutas importadas');
+  } catch (e) {
+    alert('JSON inválido. Revisa que esté bien formado.');
+  }
+});
+
+/* ========= Inicio ========= */
+(function init() {
+  // Asegurar que existan todas las rutas
+  const needed = ["Lunes","Martes","Miércoles","Jueves","Viernes"];
+  let changed = false;
+  needed.forEach(k => { if (!Array.isArray(ROUTES[k])) { ROUTES[k]=[]; changed=true; } });
+  if (changed) saveRoutes(ROUTES);
+  renderList();
+})();
+</script>
 </body>
 </html>
