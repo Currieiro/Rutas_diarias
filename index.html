@@ -46,6 +46,9 @@
     .searchWrap button{padding:10px 12px}
     ol.route{margin:0;padding-left:22px}
     ol.route li{margin:6px 0}
+    .visit{display:flex;align-items:center;gap:10px}
+    .visit.done span{opacity:.7;text-decoration:line-through}
+    .visit .tick{transform:scale(1.2)}
     @media (max-width:860px){.split{grid-template-columns:1fr}}
   </style>
 </head>
@@ -53,7 +56,7 @@
   <div class="wrap">
     <div class="row" style="margin-bottom:16px">
       <h1>Planificador diario de clientes</h1>
-      <span class="badge" id="version">v1.2</span>
+      <span class="badge" id="version">v1.3</span>
       <div class="grow"></div>
       <button class="ghost" id="toggleTheme" title="Cambiar tema">🌓</button>
     </div>
@@ -123,7 +126,7 @@
           <div class="grow"></div>
           <button id="imprimirRuta">Imprimir ruta</button>
         </div>
-        <p class="hint">Esta pantalla muestra solo los clientes <strong>seleccionados</strong> para el día. Úsala como hoja de ruta.</p>
+        <p class="hint">Marca cada visita como <em>hecha</em>. Se guarda por fecha y cliente.</p>
         <ol class="route" id="rutaLista"></ol>
       </section>
 
@@ -192,7 +195,8 @@
     const LS_KEYS = {
       clientes: 'clientes',        // array de strings
       planes: 'planes',            // objeto: { 'YYYY-MM-DD': [clientes] }
-      rutas: 'rutasPredef'         // objeto: { 'R-1': [clientes], ... }
+      rutas: 'rutasPredef',        // objeto: { 'R-1': [clientes], ... }
+      hechos: 'visitasHechas'      // objeto: { 'YYYY-MM-DD': { 'Cliente A': true, ... } }
     };
 
     const $ = sel => document.querySelector(sel);
@@ -213,11 +217,15 @@
       }catch{ return {...DEFAULT_RUTAS}; }
     }
     function saveRutas(obj){
-      // Mantener siempre las claves R-1..R-5
       const out = {...DEFAULT_RUTAS, ...obj};
       Object.keys(out).forEach(k=>{ out[k] = [...new Set((out[k]||[]).filter(Boolean))]; });
       localStorage.setItem(LS_KEYS.rutas, JSON.stringify(out));
     }
+
+    function loadHechos(){
+      try{ return JSON.parse(localStorage.getItem(LS_KEYS.hechos)||'{}'); }catch{ return {}; }
+    }
+    function saveHechos(obj){ localStorage.setItem(LS_KEYS.hechos, JSON.stringify(obj)); }
 
     function dateKey(d){ return d.toISOString().slice(0,10); }
 
@@ -225,6 +233,7 @@
     let CLIENTES = loadClientes();
     let PLANES = loadPlanes();
     let RUTAS = loadRutas();
+    let HECHOS = loadHechos();
 
     // ========= UI: pestañas =========
     $$('.pill').forEach(p=>p.addEventListener('click',()=>{
@@ -317,13 +326,16 @@
         PLANES[key] = [];
         savePlanes(PLANES);
         renderLista();
+        // al vaciar también limpiamos los "hechos" de ese día
+        delete HECHOS[key];
+        saveHechos(HECHOS);
       }
     });
 
     $('#imprimir').addEventListener('click', ()=>{ window.print(); });
 
     $('#exportar').addEventListener('click', ()=>{
-      const data = { clientes: CLIENTES, planes: PLANES, rutas: RUTAS };
+      const data = { clientes: CLIENTES, planes: PLANES, rutas: RUTAS, hechos: HECHOS };
       const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -342,6 +354,7 @@
           if(Array.isArray(data.clientes)){ CLIENTES = [...new Set(data.clientes)]; saveClientes(CLIENTES); }
           if(data.planes && typeof data.planes==='object'){ PLANES = data.planes; savePlanes(PLANES); }
           if(data.rutas && typeof data.rutas==='object'){ RUTAS = {...DEFAULT_RUTAS, ...data.rutas}; saveRutas(RUTAS); }
+          if(data.hechos && typeof data.hechos==='object'){ HECHOS = data.hechos; saveHechos(HECHOS); }
           renderClientesAdmin();
           renderLista();
           renderRutas();
@@ -510,6 +523,7 @@
       if(!$('#fechaRuta').value) $('#fechaRuta').value = $('#fecha').value;
       const key = dateKey(fecha);
       const lista = PLANES[key]||[];
+      const hechos = HECHOS[key] || {};
       const ol = $('#rutaLista');
       ol.innerHTML = '';
       if(!lista.length){
@@ -518,9 +532,22 @@
         ol.appendChild(li);
         return;
       }
-      lista.forEach((c,i)=>{
+      lista.forEach((c)=>{
         const li = document.createElement('li');
-        li.textContent = c;
+        const checked = !!hechos[c];
+        li.innerHTML = `
+          <label class="visit ${checked ? 'done' : ''}">
+            <input class="tick" type="checkbox" ${checked ? 'checked' : ''}>
+            <span>${c}</span>
+          </label>`;
+        const cb = li.querySelector('input');
+        cb.addEventListener('change', ()=>{
+          const k = dateKey(new Date($('#fechaRuta').value));
+          HECHOS[k] = HECHOS[k] || {};
+          HECHOS[k][c] = cb.checked;
+          saveHechos(HECHOS);
+          li.querySelector('.visit').classList.toggle('done', cb.checked);
+        });
         ol.appendChild(li);
       });
     }
@@ -574,3 +601,4 @@
   </script>
 </body>
 </html>
+
