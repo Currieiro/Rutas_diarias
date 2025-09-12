@@ -226,13 +226,6 @@
   }
   refreshHints();
 
-  function removeFromRecent(name){
-    const hist = JSON.parse(localStorage.getItem('recentAdds')||'[]');
-    const arr = hist.filter(x => x !== name);
-    localStorage.setItem('recentAdds', JSON.stringify(arr));
-    refreshHints();
-  }
-
   function pushRecent(name){
     const hist = JSON.parse(localStorage.getItem('recentAdds')||'[]');
     const arr = [name, ...hist.filter(x=>x!==name)].slice(0,5);
@@ -261,13 +254,7 @@
       makeDraggable(li, handle, list);
 
       const del = document.createElement('button'); del.className='del'; del.title='Eliminar'; del.textContent='–';
-      del.addEventListener('click', ()=>{
-      const nameToRemove = item.name;
-      list.splice(idx,1);
-      removeFromRecent(nameToRemove);
-      saveRouteState(currentActiveRoute);
-      renderActive();
-    });
+      del.addEventListener('click', ()=>{ list.splice(idx,1); saveRouteState(currentActiveRoute); renderActive(); });
 
   browseSelect.addEventListener('change', renderBrowse);
 
