@@ -44,7 +44,7 @@
     .handle{touch-action:none;user-select:none}
     .handle::after{content:"≡";font-size:20px;opacity:.9}
 
-    /* modo edición: aparece el botón eliminar elegante */
+    /* modo edición: botón eliminar elegante */
     .item .del{display:none}
     .edit-mode .item .del{display:inline-flex}
     .del{align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;background:transparent;border:1px solid var(--danger);color:var(--danger)}
@@ -109,49 +109,49 @@
   <script>
   // ======= DATOS BASE =======
   const baseRoutes = {
-  "Ruta 1": [
-    "EL PEDREGAL", "MARIMBA", "MANDUCA NUEVO", "BAR BUC", "TOC HOSTAL GRAN VIA",
-    "BAR RESTAURANTE POMA" , "TIENDA RONDA SANT ANTONI", "BAR CAFETERIA MARIANA",
-    "OMBU,RTE", "O CANTO RESTAURANTE", "ROCHA", "MOLI PAN Y CAFE ZONA FRANCA",
-    "PESSEBRE", "RTE L'ESTONETA", "CUATRECASAS", "PLEASE PLATS", "BUFFS DE FARINA"
-  ],
-  "Ruta 2": [
-    "LA LLAR DEL MERCAT 2 SANT BOI", "TIENDA EL TALLER SANT BOI", "HOTEL FRONTAIR CONGRESS",
-    "NON SOLO CREPS", "TIENDA SANT VICENÇ DELS HORTS", "NOVA", "EL CARQUINYOLI", "A DUES RODES",
-    "LOS 3 ARCOS", "HOTEL SB WIN SANT FELIU", "SETEMBRE", "BAR DE BO", "GARBI",
-    "RESTAURANTE SUKAPA", "CAFETERIA RONDA SANT BOI", "CAFETERIA LEROY MERLIN SANT BOI",
-    "K10 SUSHI SANT BOI", "CAFE ILUSIONA BY MUXIA", "RIAS DE GALICIA RTE",
-    "CASA DE TAPAS LA CAÑOTA"
-  ],
-  "Ruta 3": [
-    "TIENDA LES CORTS", "MANDONI PEDRALBES", "EL MOLI PAN Y CAFE SANTS",
-    "FORN VELL INDUSTRIA", "FORN VELL CLARET", "ARTESANO", "BOEDO", "FLANDERS", "BAR CIURIS"
-  ],
-  "Ruta 4": [
-    "EL PEDREGAL", "CAFETERÍA PIPA'S", "TIENDA TORRES I BAGES", "LA RUTA GALLEGA", "BAR CAÑAS", "RINCÓN GALLEGO MERIDIANA", "TIENDA MERIDIANA II",
-    "RINCON GALEGO", "TIENDA JOAQUIM VALLS", "FRANKFURT TOLIK", "QUILMEÑA",
-    "ORDAL", "BAR EUROPA", "EL MIRALL DELS ENCANTS"
-  ],
-  "Ruta 5": [
-    "TIENDA VIA JULIA", "VALLDAURA", "TIENDA TALLER VALLDAURA", "AMPARITO",
-    "BAR LOS PINOS 2", "SET POINT", "LA CASSOLETA", "LES CATIVAS"
-  ],
-  "Clientes que llaman": [
-    "RTE PIPA", "O BURATO BAR", "TEATRO NACIONAL DE CATALUNYA", "RESTAURANT CENT FOCS",
-    "HOTEL MESON CASTILLA", "BAR RTE LEPANTO", "EXE RAMBLAS BOQUERIA", "RESTAURANTE HONKAKU II",
-    "SARA TAPES", "HOTEL SB GLOW", "HOTEL SB ICARIA BARCELONA", "CAFETERIA DOMI",
-    "LA FILOMENA BAR", "EUROSTARS ANGLI", "ATICCO PASSEIG DE GRÀCIA CANTINA",
-    "EXE LAIETANA PALACE", "EUROSTARS CRISTAL PALACE", "MIRADOR SANT JUST", "IKONIK RAMBLAS",
-    "ALTIMA HOSPITALET GRAN VIA", "EXE PLAZA CATALUNYA 4", "EUROSTARS MONUMENTAL",
-    "EUROSTARS MITRE", "RESTAURANTE LA GORMANDA", "TOSTA BAR", "ADELITA RESTAURANTE",
-    "LOKAL", "BATEA", "TSUKIMI", "LA PALMERA", "LOMO ALTO", "HOTEL ORIENTE", "HOTEL ARENAS",
-    "HOTEL TRES TORRES", "ESCAIRON", "LA BRASA RESTAURANTE", "RTE ANCARES", "HOTEL SB WIN SANT FELIU",
-    "RTE MAMETORA", "R.U. COSMOPOLITAN", "ESCUELA JUDICIAL BCN", "O MEU LAR", "GREENVITA NUMANCIA",
-    "EL RACONET D'URGELL", "CHALITO BCN.", "CLUB TIRO MONTJUIT", "FRANKFURT SANTS",
-    "R.U. EMILIE DE VILLENUEVE", "SOLUCIONS SOCIALS INSERCIO", "ALTIMA SANT BOI",
-    "FUNDACIO ASPACE CATALUNYA", "GREEN VITA GLORIES", "ATICCO PASSEIG DE GRÀCIA OFICINA", "SANED THAU"
-  ]
-};
+    "Ruta 1": [
+      "EL PEDREGAL","MARIMBA","MANDUCA NUEVO","BAR BUC","TOC HOSTAL GRAN VIA",
+      "BAR RESTAURANTE LA POMA","TIENDA RONDA SANT ANTONI","BAR CAFETERIA MARIANA",
+      "OMBU,RTE","O CANTO RESTAURANTE","ROCHA","MOLI PAN Y CAFE ZONA FRANCA",
+      "PESSEBRE","RTE L'ESTONETA","CUATRECASAS","PLEASE PLATS","BUFFS DE FARINA"
+    ],
+    "Ruta 2": [
+      "LA LLAR DEL MERCAT 2 SANT BOI","TIENDA EL TALLER SANT BOI","HOTEL FRONTAIR CONGRESS",
+      "NON SOLO CREPS","TIENDA SANT VICENÇ DELS HORTS", "NOVA","EL CARQUINYOLI",
+      "A DUES RODES","LOS 3 ARCOS","HOTEL SB WIN SANT FELIU","SETEMBRE","BAR DE BO",
+      "GARBI","RESTAURANTE SUKAPA","CAFETERIA RONDA SANT BOI",
+      "CAFETERIA LEROY MERLIN SANT BOI","K10 SUSHI SANT BOI","CAFE ILUSIONA BY MUXIA","RIAS DE GALICIA RTE","CASA DE TAPAS LA CAÑOTA"
+    ],
+    "Ruta 3": [
+      "TIENDA LES CORTS","MANDONI PEDRALBES","EL MOLI PAN Y CAFE SANTS",
+      "FORN VELL INDUSTRIA","FORN VELL CLARET", "ARTESANO","BOEDO","FLANDERS","BAR CIURIS"
+    ],
+    "Ruta 4": [
+      "EL PEDREGAL","CAFETERÍA PIPA'S","TIENDA CLOT",
+      "LA RUTA GALLEGA","BAR CAÑAS","O RINCON GALLEGO MERIDIANA","TIENDA MERIDIANA II",
+      "RINCON GALEGO","TIENDA JOAQUIM VALLS","FRANKFURT TOLIK","QUILMEÑA","ORDAL",
+      "BAR EUROPA","EL MIRALL DELS ENCANTS"
+    ],
+    "Ruta 5": [
+      "TIENDA TORRES I BAGES","TIENDA VIA JULIA","VALDAURA","TIENDA TALLER VALLDAURA","AMPARITO","BAR LOS PINOS 2",
+      "SET POINT","LA CASSOLETA","LES CATIVAS"
+    ],
+    "Clientes que llaman": [
+      "RTE PIPA","O BURATO BAR","TEATRO NACIONAL DE CATALUNYA","RESTAURANT CENT FOCS",
+      "HOTEL MESON CASTILLA","BAR RTE LEPANTO","EXE RAMBLAS BOQUERIA","RESTAURANTE HONKAKU II",
+      "SARA TAPES","HOTEL SB GLOW","HOTEL SB ICARIA BARCELONA","CAFETERIA DOMI",
+      "LA FILOMENA BAR","EUROSTARS ANGLI","ATICCO PASSEIG DE GRÀCIA CANTINA",
+      "EXE LAIETANA PALACE","EUROSTARS CRISTAL PALACE","MIRADOR SANT JUST",
+      "IKONIK RAMBLAS","ALTIMA HOSPITALET GRAN VIA","EXE PLAZA CATALUNYA 4","EUROSTARS MONUMENTAL",
+      "EUROSTARS MITRE","RESTAURANTE LA GORMANDA","TOSTA BAR","ADELITA RESTAURANTE",
+      "LOKAL","BATEA","TSUKIMI","LA PALMERA","LOMO ALTO","HOTEL ORIENTE","HOTEL ARENAS",
+      "HOTEL TRES TORRES","ESCAIRON","LA BRASA RESTAURANTE","RTE ANCARES","HOTEL SB WIN SANT FELIU",
+      "RTE MAMETORA","R.U. COSMOPOLITAN","ESCUELA JUDICIAL BCN","O MEU LAR","GREENVITA NUMANCIA",
+      "EL RACONET D'URGELL","CHALITO BCN.","CLUB TIRO MONTJUIT","FRANKFURT SANTS",
+      "R.U. EMILIE DE VILLENUEVE","SOLUCIONS SOCIALS INSERCIO","ALTIMA SANT BOI",
+      "FUNDACIO ASPACE CATALUNYA","GREEN VITA GLORIES","ATICCO PASSEIG DE GRÀCIA OFICINA"
+    ]
+  };
   const routeNames = ["Ruta 1","Ruta 2","Ruta 3","Ruta 4","Ruta 5","Clientes que llaman"];
   const keyFor = (route) => route.toLowerCase().replaceAll(/\s+/g,'_').replaceAll('ñ','n');
 
@@ -255,6 +255,130 @@
 
       const del = document.createElement('button'); del.className='del'; del.title='Eliminar'; del.textContent='–';
       del.addEventListener('click', ()=>{ list.splice(idx,1); saveRouteState(currentActiveRoute); renderActive(); });
+
+      if (item.visited) li.classList.add('visited');
+      li.append(cb, name, handle, del);
+      activeListEl.appendChild(li);
+    });
+    activeListEl.parentElement.classList.toggle('edit-mode', editMode);
+  }
+
+  function renderBrowse(){
+    const r = browseSelect.value;
+    const names = baseRoutes[r];
+    browseListEl.innerHTML = '';
+    names.forEach((n)=>{
+      const li = document.createElement('li'); li.className='item';
+      const cb = document.createElement('input'); cb.type='checkbox'; cb.className='check'; cb.dataset.name = n;
+      cb.addEventListener('change', updateSelectionBar);
+      const name = document.createElement('div'); name.className='name'; name.textContent = n;
+      li.append(cb, name);
+      browseListEl.appendChild(li);
+    });
+    updateSelectionBar();
+  }
+
+  // ======= REORDENAR ELEGANTE (arrastrar con "handle") =======
+  let editMode = false;
+  btnEdit.addEventListener('click', ()=>{
+    editMode = !editMode;
+    btnEdit.textContent = editMode ? 'Listo' : 'Editar';
+    activeListEl.parentElement.classList.toggle('edit-mode', editMode);
+  });
+
+  function makeDraggable(li, handle, list){
+    let dragging = false, startY=0, startTop=0, startIdx=0, itemHeight=0, placeholder=null;
+
+    function onPointerDown(e){
+      e.preventDefault();
+      dragging = true;
+      startY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+      const rect = li.getBoundingClientRect();
+      startTop = li.offsetTop; startIdx = +li.dataset.index; itemHeight = rect.height;
+      li.classList.add('dragging');
+      li.style.position='absolute';
+      li.style.left='0'; li.style.right='0'; li.style.width='100%';
+      li.style.top = startTop + 'px';
+      li.style.pointerEvents='none';
+      // placeholder
+      placeholder = document.createElement('div'); placeholder.className='placeholder';
+      activeListEl.insertBefore(placeholder, li.nextSibling);
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerUp, {once:true});
+      window.addEventListener('touchmove', onPointerMove, {passive:false});
+      window.addEventListener('touchend', onPointerUp, {once:true});
+    }
+
+    function onPointerMove(e){
+      if (!dragging) return;
+      const y = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+      const dy = y - startY;
+      li.style.top = (startTop + dy) + 'px';
+      e.preventDefault();
+      // calcular posición objetivo
+      const currentTop = startTop + dy;
+      let toIndex = Math.round(currentTop / itemHeight);
+      toIndex = Math.max(0, Math.min(toIndex, activeListEl.children.length-1));
+      const ref = activeListEl.children[toIndex];
+      if (ref && ref !== placeholder){
+        activeListEl.insertBefore(placeholder, (currentTop < placeholder.offsetTop) ? ref : ref.nextSibling);
+      }
+    }
+
+    function onPointerUp(){
+      if (!dragging) return; dragging=false;
+      // calcular índice final a partir del placeholder
+      const children = [...activeListEl.children];
+      const newIdx = Math.max(0, children.indexOf(placeholder));
+      placeholder.remove();
+      li.classList.remove('dragging');
+      li.style.cssText='';
+
+      if (newIdx !== startIdx){
+        const [moved] = list.splice(startIdx,1);
+        list.splice(newIdx,0,moved);
+        saveRouteState(currentActiveRoute);
+        renderActive();
+      } else {
+        // re-pintar índices
+        $$('.item', activeListEl).forEach((el,i)=> el.dataset.index=i);
+      }
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('touchmove', onPointerMove);
+    }
+
+    handle.addEventListener('pointerdown', onPointerDown);
+    handle.addEventListener('touchstart', onPointerDown, {passive:false});
+  }
+
+  // ======= OPERACIONES =======
+  function addToActive(names){
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute];
+    const existing = new Set(list.map(x=>x.name));
+    let added = 0;
+    names.forEach(n=>{
+      if (!existing.has(n)){
+        list.push({name:n, visited:false});
+        existing.add(n); added++; pushRecent(n);
+      }
+    });
+    if (added>0){ saveRouteState(currentActiveRoute); renderActive(); }
+  }
+
+  function updateSelectionBar(){
+    const selected = $$('input.check:checked', browseListEl).map(cb=>cb.dataset.name);
+    btnAddSelected.disabled = selected.length===0;
+    btnAddSelected.textContent = `+ (${selected.length})`;
+    btnAddBar.textContent = `Añadir ${selected.length} seleccionados a la activa`;
+    addBar.classList.toggle('show', selected.length>0);
+  }
+
+  // ======= EVENTOS UI =======
+  btnSetActive.addEventListener('click', ()=>{
+    setActiveRouteName(activeSelect.value);
+    renderActive();
+  });
 
   browseSelect.addEventListener('change', renderBrowse);
 
