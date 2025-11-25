@@ -46,6 +46,22 @@
       margin:0 0 8px;
     }
 
+    .date-line input[type="date"]{
+      max-width:160px;
+      padding:4px 8px;
+      font-size:.9rem;
+      margin-left:6px;
+      border-radius:8px;
+      background:transparent;
+      color:var(--text);
+      border:1px solid var(--accent);
+    }
+
+    .date-line input[type="date"]:focus{
+      outline:2px solid var(--accent);
+      outline-offset:2px;
+    }
+
     /* tarjetas */
     .card{
       border:1px solid var(--line);
@@ -76,8 +92,7 @@
 
     /* selects / inputs */
     select,
-    input[type="text"],
-    input[type="date"]{
+    input[type="text"]{
       width:100%;
       box-sizing:border-box;
       background:transparent;
@@ -92,6 +107,11 @@
     input:focus{
       outline:2px solid var(--accent);
       outline-offset:2px;
+    }
+
+    input[type="date"]{
+      background:transparent;
+      color:var(--text);
     }
 
     .row{
@@ -289,11 +309,10 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Gestor de Rutas <span class="version">v 3.2</span> · <span class="tag">Activa del día</span></h1>
+    <h1>Gestor de Rutas <span class="version">v 3.2.1</span> · <span class="tag">Activa del día</span></h1>
     <p class="date-line">
       Día de trabajo:
-      <input type="date" id="date-select" style="max-width:180px;display:inline-block">
-      · <span id="date-text"></span>
+      <input type="date" id="date-select">
     </p>
 
     <!-- RUTA ACTIVA DEL DÍA -->
@@ -416,7 +435,6 @@
   const routeNames = ["Ruta 1","Ruta 2","Ruta 3","Ruta 4","Ruta 5","Clientes que llaman"];
   const keyFor = (route) => route.toLowerCase().split(' ').join('_').replaceAll('ñ','n');
 
-  // ======= HELPERS Y ELEMENTOS =======
   const $ = (s,root=document)=>root.querySelector(s);
   const $$ = (s,root=document)=>[...root.querySelectorAll(s)];
 
@@ -438,7 +456,6 @@
   const btnAddSelected = $('#btn-add-selected');
   const btnAddBar = $('#btn-add-bar');
   const dateSelect = $('#date-select');
-  const dateText = $('#date-text');
   const activeRouteLabel = $('#active-route-label');
   const activeSummary = $('#active-summary');
   const statsText = $('#stats-text');
@@ -470,13 +487,11 @@
     if (routeStates[route]) return;
     let list = null;
 
-    // estado guardado por fecha
     const stored = localStorage.getItem(storageKey(route));
     if (stored){
       try{ list = JSON.parse(stored); }catch{ list = null; }
     }
 
-    // compatibilidad con estado antiguo sin fecha
     if (!list){
       const legacy = localStorage.getItem('state_'+keyFor(route));
       if (legacy){
@@ -502,19 +517,6 @@
 
   function updateActiveRouteLabel(){
     activeRouteLabel.textContent = currentActiveRoute;
-  }
-
-  function updateDateLabel(){
-    const [y,m,d] = currentDate.split('-');
-    const dateObj = new Date(Number(y), Number(m)-1, Number(d));
-    let formatted = dateObj.toLocaleDateString('es-ES', {
-      weekday:'long',
-      year:'numeric',
-      month:'long',
-      day:'numeric'
-    });
-    formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
-    dateText.textContent = formatted;
   }
 
   function updateActiveSummary(){
@@ -548,7 +550,7 @@
     }
   }
 
-  // ======= INICIALIZACIÓN DE SELECTS Y DATALIST =======
+  // ======= SELECTS Y DATALIST =======
   function fillSelect(sel){
     sel.innerHTML = '';
     for (const r of routeNames){
@@ -564,7 +566,6 @@
   activeSelect.value = currentActiveRoute;
   browseSelect.value = routeNames[0];
 
-  // datalist de todos los clientes para autocompletar
   (function populateDatalist(){
     const set = new Set();
     routeNames.forEach(r=> baseRoutes[r].forEach(n=> set.add(n)));
@@ -576,7 +577,6 @@
     }
   })();
 
-  // chips de atajo (los 5 últimos añadidos)
   function refreshHints(){
     const hist = JSON.parse(localStorage.getItem('recentAdds')||'[]');
     hints.innerHTML = '';
@@ -605,14 +605,13 @@
     refreshHints();
   }
 
-  // ======= CARGA DE LISTAS =======
+  // ======= RENDER RUTAS =======
   function renderActive(){
     ensureState(currentActiveRoute);
     const list = routeStates[currentActiveRoute];
     activeListEl.innerHTML = '';
 
     list.forEach((item, idx)=>{
-      // filtro
       if (currentFilter === 'pending' && item.visited) return;
       if (currentFilter === 'visited' && !item.visited) return;
 
@@ -692,7 +691,7 @@
     updateSelectionBar();
   }
 
-  // ======= REORDENAR ELEGANTE (arrastrar con "handle") =======
+  // ======= DRAG & DROP =======
   btnEdit.addEventListener('click', ()=>{
     editMode = !editMode;
     btnEdit.textContent = editMode ? 'Listo' : 'Editar';
@@ -725,7 +724,6 @@
       li.style.width='100%';
       li.style.top = startTop + 'px';
       li.style.pointerEvents='none';
-      // placeholder
       placeholder = document.createElement('div');
       placeholder.className='placeholder';
       activeListEl.insertBefore(placeholder, li.nextSibling);
@@ -741,7 +739,6 @@
       const dy = y - startY;
       li.style.top = (startTop + dy) + 'px';
       e.preventDefault();
-      // calcular posición objetivo
       const currentTop = startTop + dy;
       let toIndex = Math.round(currentTop / itemHeight);
       toIndex = Math.max(0, Math.min(toIndex, activeListEl.children.length-1));
@@ -754,7 +751,6 @@
     function onPointerUp(){
       if (!dragging) return;
       dragging=false;
-      // calcular índice final a partir del placeholder
       const children = [...activeListEl.children];
       const newIdx = Math.max(0, children.indexOf(placeholder));
       placeholder.remove();
@@ -768,7 +764,6 @@
         renderActive();
         updateGlobalStats();
       } else {
-        // re-pintar índices
         $$('.item', activeListEl).forEach((el,i)=> el.dataset.index=i);
       }
       window.removeEventListener('pointermove', onPointerMove);
@@ -865,7 +860,7 @@
   btnAddSelected.addEventListener('click', ()=>{
     const names = $$('input.check:checked', browseListEl).map(cb=>cb.dataset.name);
     addToActive(names);
-    $$( 'input.check:checked', browseListEl).forEach(cb=> cb.checked=false);
+    $$('input.check:checked', browseListEl).forEach(cb=> cb.checked=false);
     updateSelectionBar();
   });
 
@@ -935,10 +930,9 @@
   dateSelect.addEventListener('change', ()=>{
     currentDate = dateSelect.value || getTodayStr();
     localStorage.setItem('currentDate', currentDate);
-    routeStates = {}; // reset cache para esta fecha
+    routeStates = {};
     renderActive();
     renderBrowse();
-    updateDateLabel();
     updateGlobalStats();
   });
 
@@ -954,7 +948,6 @@
 
   // ======= INICIO =======
   updateActiveRouteLabel();
-  updateDateLabel();
   filterButtons.find(b => b.dataset.filter === 'all').classList.add('active');
   renderActive();
   renderBrowse();
