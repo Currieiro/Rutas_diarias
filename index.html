@@ -44,6 +44,15 @@
     .handle{touch-action:none;user-select:none}
     .handle::after{content:"≡";font-size:20px;opacity:.9}
 
+    /* número de visita */
+    .num{
+      width: 2.2em;
+      font-size: .8rem;
+      opacity: .8;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
     /* modo edición: aparece el botón eliminar elegante */
     .item .del{display:none}
     .edit-mode .item .del{display:inline-flex}
@@ -252,14 +261,35 @@
     activeListEl.innerHTML = '';
     list.forEach((item, idx)=>{
       const li = document.createElement('li'); li.className='item'; li.dataset.index = idx;
-      const cb = document.createElement('input'); cb.type='checkbox'; cb.className='check'; cb.checked=!!item.visited;
-      cb.addEventListener('change', ()=>{ item.visited = cb.checked; saveRouteState(currentActiveRoute); li.classList.toggle('visited', item.visited); });
-      const name = document.createElement('div'); name.className='name'; name.textContent=item.name;
 
-      const handle = document.createElement('button'); handle.className='handle btn ghost shrink'; handle.title='Arrastrar para reordenar'; handle.textContent='';
+      const cb = document.createElement('input');
+      cb.type='checkbox';
+      cb.className='check';
+      cb.checked=!!item.visited;
+      cb.addEventListener('change', ()=>{
+        item.visited = cb.checked;
+        saveRouteState(currentActiveRoute);
+        li.classList.toggle('visited', item.visited);
+      });
+
+      const num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = (idx + 1) + '.';
+
+      const name = document.createElement('div');
+      name.className='name';
+      name.textContent=item.name;
+
+      const handle = document.createElement('button'); 
+      handle.className='handle btn ghost shrink'; 
+      handle.title='Arrastrar para reordenar'; 
+      handle.textContent='';
       makeDraggable(li, handle, list);
 
-      const del = document.createElement('button'); del.className='del'; del.title='Eliminar'; del.textContent='–';
+      const del = document.createElement('button'); 
+      del.className='del'; 
+      del.title='Eliminar'; 
+      del.textContent='–';
       del.addEventListener('click', ()=>{
         const nameToRemove = item.name;
         list.splice(idx,1);
@@ -269,7 +299,8 @@
       });
 
       if (item.visited) li.classList.add('visited');
-      li.append(cb, name, handle, del);
+      // Orden: checkbox · número · nombre · handle · eliminar
+      li.append(cb, num, name, handle, del);
       activeListEl.appendChild(li);
     });
     activeListEl.parentElement.classList.toggle('edit-mode', editMode);
