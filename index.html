@@ -13,36 +13,185 @@
       --line:#3f2e26;
       --danger:#ff5a5a;
     }
-    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-    .wrap{max-width:840px;margin:0 auto;padding:10px 12px 80px}
-    h1{font-size:1.15rem;margin:8px 0 12px;text-align:center}
+
+    html,body{
+      margin:0;
+      height:100%;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:840px;
+      margin:0 auto;
+      padding:10px 12px 80px;
+    }
+
+    h1{
+      font-size:1.15rem;
+      margin:8px 0 6px;
+      text-align:center;
+    }
+
+    .version{
+      font-size:.8rem;
+      opacity:.8;
+    }
+
+    .date-line{
+      font-size:.85rem;
+      text-align:center;
+      color:var(--muted);
+      margin:0 0 8px;
+    }
 
     /* tarjetas */
-    .card{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0;background:rgba(255,255,255,0.03);backdrop-filter:saturate(120%) blur(0.5px)}
-    .card h2{font-size:1rem;margin:0 0 8px;display:flex;align-items:center;gap:.5rem}
-    .tag{font-size:.75rem;padding:2px 8px;border-radius:999px;background:var(--accent);color:#000;font-weight:700}
+    .card{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      margin:10px 0;
+      background:rgba(255,255,255,0.03);
+      backdrop-filter:saturate(120%) blur(0.5px);
+    }
+
+    .card h2{
+      font-size:1rem;
+      margin:0 0 8px;
+      display:flex;
+      align-items:center;
+      gap:.5rem;
+      flex-wrap:wrap;
+    }
+
+    .tag{
+      font-size:.75rem;
+      padding:2px 8px;
+      border-radius:999px;
+      background:var(--accent);
+      color:#000;
+      font-weight:700;
+    }
 
     /* selects / inputs */
-    select, input[type="text"]{width:100%;box-sizing:border-box;background:transparent;color:var(--text);border:1px solid var(--accent);border-radius:10px;padding:10px 12px;font-size:1rem}
-    select:focus,input:focus{outline:2px solid var(--accent)}
+    select,
+    input[type="text"],
+    input[type="date"]{
+      width:100%;
+      box-sizing:border-box;
+      background:transparent;
+      color:var(--text);
+      border:1px solid var(--accent);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:1rem;
+    }
 
-    .row{display:flex;gap:8px;align-items:center}
+    select:focus,
+    input:focus{
+      outline:2px solid var(--accent);
+      outline-offset:2px;
+    }
+
+    .row{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
     .row > *{flex:1}
     .row .shrink{flex:0}
 
-    .btn{appearance:none;border:none;background:var(--accent);color:#000;font-weight:700;border-radius:999px;padding:10px 14px;cursor:pointer}
-    .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
-    .btn.danger{background:var(--danger);color:#000}
+    .btn{
+      appearance:none;
+      border:none;
+      background:var(--accent);
+      color:#000;
+      font-weight:700;
+      border-radius:999px;
+      padding:10px 16px;
+      cursor:pointer;
+      font-size:.9rem;
+      min-height:40px;
+    }
+
+    .btn.ghost{
+      background:transparent;
+      color:var(--accent);
+      border:1px solid var(--accent);
+    }
+
+    .btn.danger{
+      background:var(--danger);
+      color:#000;
+    }
+
+    .btn:focus-visible{
+      outline:2px solid #fff;
+      outline-offset:2px;
+    }
+
+    .btn[disabled]{
+      opacity:.5;
+      cursor:default;
+    }
+
+    /* filtros */
+    .filter-btn{
+      font-size:.8rem;
+      padding:6px 10px;
+      min-height:32px;
+    }
+
+    .filter-btn.active{
+      background:var(--accent);
+      color:#000;
+    }
 
     /* listas */
-    .list{list-style:none;margin:8px 0 0;padding:0}
-    .item{position:relative;display:flex;gap:10px;align-items:center;border-bottom:1px dashed var(--line);padding:12px 2px}
+    .list{
+      list-style:none;
+      margin:8px 0 0;
+      padding:0;
+    }
+
+    .item{
+      position:relative;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      border-bottom:1px dashed var(--line);
+      padding:12px 2px;
+    }
+
     .item:last-child{border-bottom:none}
-    .visited .name{text-decoration:line-through;color:var(--muted)}
-    .check{transform:scale(1.2)}
-    .name{flex:1;word-break:break-word}
-    .handle{touch-action:none;user-select:none}
-    .handle::after{content:"≡";font-size:20px;opacity:.9}
+
+    .visited .name{
+      text-decoration:line-through;
+      color:var(--muted);
+    }
+
+    .check{
+      transform:scale(1.4);
+    }
+
+    .name{
+      flex:1;
+      word-break:break-word;
+    }
+
+    .handle{
+      touch-action:none;
+      user-select:none;
+    }
+
+    .handle::after{
+      content:"≡";
+      font-size:20px;
+      opacity:.9;
+    }
 
     /* número de visita */
     .num{
@@ -56,48 +205,144 @@
     /* modo edición: aparece el botón eliminar elegante */
     .item .del{display:none}
     .edit-mode .item .del{display:inline-flex}
-    .del{align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;background:transparent;border:1px solid var(--danger);color:var(--danger)}
+
+    .del{
+      align-items:center;
+      justify-content:center;
+      width:28px;
+      height:28px;
+      border-radius:999px;
+      background:transparent;
+      border:1px solid var(--danger);
+      color:var(--danger);
+      cursor:pointer;
+    }
+
+    .del:focus-visible{
+      outline:2px solid var(--danger);
+      outline-offset:2px;
+    }
 
     /* barra inferior para añadir seleccionados */
-    .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);border-top:1px solid var(--line);padding:10px 12px;display:none}
+    .bar{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      background:rgba(0,0,0,.45);
+      backdrop-filter:blur(6px);
+      border-top:1px solid var(--line);
+      padding:10px 12px;
+      display:none;
+    }
+
     .bar.show{display:block}
     .bar .btn{width:100%}
 
     /* chips */
-    .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-    .chip{font-size:.75rem;border:1px solid var(--accent);color:var(--accent);padding:4px 8px;border-radius:999px}
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:8px;
+    }
+
+    .chip{
+      font-size:.75rem;
+      border:1px solid var(--accent);
+      color:var(--accent);
+      padding:4px 8px;
+      border-radius:999px;
+      cursor:pointer;
+      background:transparent;
+    }
+
+    .chip:hover{
+      background:rgba(255,165,0,0.12);
+    }
+
+    .chip:focus-visible{
+      outline:2px solid var(--accent);
+      outline-offset:2px;
+    }
 
     /* arrastrando */
-    .dragging{z-index:2;box-shadow:0 8px 20px rgba(0,0,0,.35)}
-    .placeholder{height:52px;border:2px dashed var(--accent);border-radius:10px;margin:6px 0}
+    .dragging{
+      z-index:2;
+      box-shadow:0 8px 20px rgba(0,0,0,.35);
+    }
+
+    .placeholder{
+      height:52px;
+      border:2px dashed var(--accent);
+      border-radius:10px;
+      margin:6px 0;
+    }
+
+    /* textos resumen */
+    .summary{
+      margin:6px 2px 0;
+      font-size:.8rem;
+      color:var(--muted);
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Gestor de Rutas <span class="version">v 3.1</span> · <span class="tag">Activa del día</span></h1>
+    <h1>Gestor de Rutas <span class="version">v 3.2</span> · <span class="tag">Activa del día</span></h1>
+    <p class="date-line">
+      Día de trabajo:
+      <input type="date" id="date-select" style="max-width:180px;display:inline-block">
+      · <span id="date-text"></span>
+    </p>
 
     <!-- RUTA ACTIVA DEL DÍA -->
     <section class="card" id="card-active">
-      <h2>Ruta activa del día</h2>
+      <h2>
+        Ruta activa del día
+        <span id="active-route-label" class="tag"></span>
+      </h2>
+
+      <div class="row" id="filter-row" style="margin:4px 0 4px">
+        <button class="btn ghost filter-btn" data-filter="all" type="button">Todos</button>
+        <button class="btn ghost filter-btn" data-filter="pending" type="button">Pendientes</button>
+        <button class="btn ghost filter-btn" data-filter="visited" type="button">Visitados</button>
+      </div>
+
       <div class="row" style="margin-bottom:8px">
         <select id="active-select" aria-label="Elegir ruta activa del día"></select>
-        <button id="btn-set-active" class="btn shrink" title="Establecer como activa">Fijar</button>
-        <button id="btn-edit" class="btn ghost shrink" title="Alternar edición">Editar</button>
+        <button id="btn-set-active" class="btn shrink" title="Establecer como activa" type="button">Fijar</button>
+        <button id="btn-edit" class="btn ghost shrink" title="Alternar edición" type="button">Editar</button>
       </div>
 
       <ul id="active-list" class="list"></ul>
+      <p id="active-summary" class="summary"></p>
 
       <div class="row" style="margin-top:10px">
         <input id="manual-add" type="text" list="all-clients" placeholder="Añadir cliente manualmente o desde sugerencias…" />
-        <button id="btn-manual-add" class="btn shrink">Añadir</button>
+        <button id="btn-manual-add" class="btn shrink" type="button">Añadir</button>
       </div>
       <datalist id="all-clients"></datalist>
 
       <div class="chips" id="hints"></div>
 
       <div class="row" style="margin-top:10px">
-        <button id="btn-reset" class="btn danger">Resetear día</button>
+        <button id="btn-reset" class="btn danger" type="button">Resetear día</button>
+        <button id="btn-copy" class="btn ghost" type="button">Copiar ruta</button>
       </div>
+      <div class="row" style="margin-top:6px">
+        <button id="btn-mark-all" class="btn ghost" type="button">Marcar todos visitados</button>
+        <button id="btn-clear-checks" class="btn ghost" type="button">Limpiar checks</button>
+      </div>
+    </section>
+
+    <!-- BUSCAR CLIENTE -->
+    <section class="card" id="card-search">
+      <h2>Buscar cliente</h2>
+      <div class="row" style="margin-bottom:8px">
+        <input id="search-input" type="text" placeholder="Buscar cliente en todas las rutas…" />
+      </div>
+      <ul id="search-results" class="list"></ul>
     </section>
 
     <!-- EXPLORAR OTRAS RUTAS -->
@@ -105,68 +350,76 @@
       <h2>Explorar otras rutas</h2>
       <div class="row" style="margin-bottom:8px">
         <select id="browse-select" aria-label="Explorar rutas"></select>
-        <button id="btn-add-selected" class="btn shrink" title="Añadir seleccionados a la activa" disabled>+ a Activa</button>
+        <button id="btn-add-selected" class="btn shrink" title="Añadir seleccionados a la activa" disabled type="button">+ a Activa</button>
       </div>
       <ul id="browse-list" class="list"></ul>
+    </section>
+
+    <!-- RESUMEN DEL DÍA -->
+    <section class="card" id="card-stats">
+      <h2>Resumen del día</h2>
+      <p id="stats-text" class="summary"></p>
     </section>
   </div>
 
   <div class="bar" id="add-bar">
-    <button id="btn-add-bar" class="btn">Añadir 0 seleccionados a la activa</button>
+    <button id="btn-add-bar" class="btn" type="button">Añadir 0 seleccionados a la activa</button>
   </div>
 
   <script>
   // ======= DATOS BASE =======
   const baseRoutes = {
-  "Ruta 1": [
-    "EL PEDREGAL", "MANDUCA NUEVO", "BAR BUC", "TOC HOSTAL GRAN VIA", 
-    "BAR RESTAURANTE LA POMA" , "TIENDA RONDA SANT ANTONI", "BAR CAFETERIA MARIANA",
-    "OMBU,RTE", "O CANTO RESTAURANTE", "ROCHA", "MOLI PAN Y CAFE ZONA FRANCA", "MARIMBA",
-    "PESSEBRE", "RTE L'ESTONETA", "CUATRECASAS", "RESTAURANTE ZHU ZHU", "PLEASE PLATS"
-  ],
-  "Ruta 2": [
-    "CAN BUIGAS", "TRES TORRES", "PETIT RACÓ", "SAN GERVASI", "DURO", "SANT FRANCESC", "MONREAL", 
-    "CAL PEP", "MAR PERUVIAN", "SINGLOT", "LA ROVIRA", "FLANDERS", "CIURI´S", "BRASAS", "KOKCHA", 
-    "ESTRELLA GALICIA", "HANAIKADA SUSHI", "LURI", "MEET THAI", "DA ANTONIO", "CLUB DE TIRO",
-    "CAFE ILUSIONA BY MUXIA", "RIAS DE GALICIA RTE", "CASA DE TAPAS LA CAÑOTA"
-  ],
-  "Ruta 3": [
-    "TIENDA LES CORTS", "MANDONI PEDRALBES", "EL MOLI PAN Y CAFE SANTS",
-    "FORN VELL INDUSTRIA", "SICILIA", "FORN VELL CLARET", "ARTESANO", "BOEDO", "AMAZONAS", "BERGUEDÁ", "BAR DEL PI", "TRAVEL BAR"
-  ],
-  "Ruta 4": [
-    "EL PEDREGAL", "ORDAL", "CAFETERÍA PIPA'S", "TIENDA CLOT", "LA RUTA GALLEGA", "BAR CAÑAS", "RINCÓN GALLEGO MERIDIANA", "TIENDA MERIDIANA II",
-    "RINCON GALEGO", "TIENDA JOAQUIM VALLS", "FRANKFURT TOLIK", "FURACU", "MI RINCÓN", "CASA ANGEL", "BAR EUROPA", "EL MIRALL DELS ENCANTS"
-  ],
-  "Ruta 5": [
-    "TIENDA TORRAS I BAGES", "TIENDA VIA JULIA", "VALLDAURA", "TIENDA TALLER VALLDAURA", "AMPARITO",
-    "BAR LOS PINOS 2", "LA CASSOLETA", "LES CATIVAS"
-  ],
-  "Clientes que llaman": [
-    "RTE PIPA", "YA MEI", "O BURATO BAR", "A PROP TEU", "DAMAIA", "ANTOTXO", "TEATRO NACIONAL DE CATALUNYA", 
-    "TASQUETA DE BLAI", "ESTACIÓN DE SERVICIO PARALELO", "SMASH HIRO", "EVENTOS MUXIA", "BESTA", "TIO BIGOTES", 
-    "HOTEL ZENIT", "BAR 70/30", "ALTIMA RONDA DE DALT", "HELADERÍA ADRI", 
-    "GULA SANA", "PIERRE VACANCES OFICINAS", "PIERRE VACANCES SANTS", "ZAMORA", "RESTAURANT CENT FOCS",
-    "HOTEL MESON CASTILLA", "BAR RTE LEPANTO", "EXE RAMBLAS BOQUERIA", "RESTAURANTE HONKAKU II",
-    "SARA TAPES", "HOTEL SB GLOW", "HOTEL SB ICARIA BARCELONA", "CAFETERIA DOMI",
-    "LA FILOMENA BAR", "EUROSTARS ANGLI", "ATICCO PASSEIG DE GRÀCIA CANTINA",
-    "EXE LAIETANA PALACE", "EUROSTARS CRISTAL PALACE", "MIRADOR SANT JUST", "IKONIK RAMBLAS",
-    "ALTIMA HOSPITALET GRAN VIA", "EXE PLAZA CATALUNYA", "EUROSTARS MONUMENTAL",
-    "EUROSTARS MITRE", "RESTAURANTE LA GORMANDA", "TOSTA BAR", "ADELITA RESTAURANTE",
-    "LOKAL", "BATEA", "TSUKIMI", "LA PALMERA", "LOMO ALTO", "HOTEL ORIENTE", "HOTEL ARENAS",
-    "HOTEL TRES TORRES", "ESCAIRON", "LA BRASA RESTAURANTE", "RTE ANCARES", "HOTEL SB WIN SANT FELIU",
-    "RTE MAMETORA", "R.U. COSMOPOLITAN", "ESCUELA JUDICIAL BCN", "O MEU LAR", "GREENVITA NUMANCIA",
-    "EL RACONET D'URGELL", "CHALITO BCN.", "CLUB TIRO MONTJUIT", "FRANKFURT SANTS",
-    "R.U. EMILIE DE VILLENUEVE", "SOLUCIONS SOCIALS INSERCIO", "ALTIMA SANT BOI",
-    "FUNDACIO ASPACE CATALUNYA", "GREEN VITA GLORIES", "ATICCO PASSEIG DE GRÀCIA OFICINA", "SANED THAU"
-  ]
-};
+    "Ruta 1": [
+      "EL PEDREGAL", "MANDUCA NUEVO", "BAR BUC", "TOC HOSTAL GRAN VIA",
+      "BAR RESTAURANTE LA POMA" , "TIENDA RONDA SANT ANTONI", "BAR CAFETERIA MARIANA",
+      "OMBU,RTE", "O CANTO RESTAURANTE", "ROCHA", "MOLI PAN Y CAFE ZONA FRANCA", "MARIMBA",
+      "PESSEBRE", "RTE L'ESTONETA", "CUATRECASAS", "RESTAURANTE ZHU ZHU", "PLEASE PLATS"
+    ],
+    "Ruta 2": [
+      "CAN BUIGAS", "TRES TORRES", "PETIT RACÓ", "SAN GERVASI", "DURO", "SANT FRANCESC", "MONREAL",
+      "CAL PEP", "MAR PERUVIAN", "SINGLOT", "LA ROVIRA", "FLANDERS", "CIURI´S", "BRASAS", "KOKCHA",
+      "ESTRELLA GALICIA", "HANAIKADA SUSHI", "LURI", "MEET THAI", "DA ANTONIO", "CLUB DE TIRO",
+      "CAFE ILUSIONA BY MUXIA", "RIAS DE GALICIA RTE", "CASA DE TAPAS LA CAÑOTA"
+    ],
+    "Ruta 3": [
+      "TIENDA LES CORTS", "MANDONI PEDRALBES", "EL MOLI PAN Y CAFE SANTS",
+      "FORN VELL INDUSTRIA", "SICILIA", "FORN VELL CLARET", "ARTESANO", "BOEDO", "AMAZONAS", "BERGUEDÁ", "BAR DEL PI", "TRAVEL BAR"
+    ],
+    "Ruta 4": [
+      "EL PEDREGAL", "ORDAL", "CAFETERÍA PIPA'S", "TIENDA CLOT", "LA RUTA GALLEGA", "BAR CAÑAS", "RINCÓN GALLEGO MERIDIANA", "TIENDA MERIDIANA II",
+      "RINCON GALEGO", "TIENDA JOAQUIM VALLS", "FRANKFURT TOLIK", "FURACU", "MI RINCÓN", "CASA ANGEL", "BAR EUROPA", "EL MIRALL DELS ENCANTS"
+    ],
+    "Ruta 5": [
+      "TIENDA TORRAS I BAGES", "TIENDA VIA JULIA", "VALLDAURA", "TIENDA TALLER VALLDAURA", "AMPARITO",
+      "BAR LOS PINOS 2", "LA CASSOLETA", "LES CATIVAS"
+    ],
+    "Clientes que llaman": [
+      "RTE PIPA", "YA MEI", "O BURATO BAR", "A PROP TEU", "DAMAIA", "ANTOTXO", "TEATRO NACIONAL DE CATALUNYA",
+      "TASQUETA DE BLAI", "ESTACIÓN DE SERVICIO PARALELO", "SMASH HIRO", "EVENTOS MUXIA", "BESTA", "TIO BIGOTES",
+      "HOTEL ZENIT", "BAR 70/30", "ALTIMA RONDA DE DALT", "HELADERÍA ADRI",
+      "GULA SANA", "PIERRE VACANCES OFICINAS", "PIERRE VACANCES SANTS", "ZAMORA", "RESTAURANT CENT FOCS",
+      "HOTEL MESON CASTILLA", "BAR RTE LEPANTO", "EXE RAMBLAS BOQUERIA", "RESTAURANTE HONKAKU II",
+      "SARA TAPES", "HOTEL SB GLOW", "HOTEL SB ICARIA BARCELONA", "CAFETERIA DOMI",
+      "LA FILOMENA BAR", "EUROSTARS ANGLI", "ATICCO PASSEIG DE GRÀCIA CANTINA",
+      "EXE LAIETANA PALACE", "EUROSTARS CRISTAL PALACE", "MIRADOR SANT JUST", "IKONIK RAMBLAS",
+      "ALTIMA HOSPITALET GRAN VIA", "EXE PLAZA CATALUNYA", "EUROSTARS MONUMENTAL",
+      "EUROSTARS MITRE", "RESTAURANTE LA GORMANDA", "TOSTA BAR", "ADELITA RESTAURANTE",
+      "LOKAL", "BATEA", "TSUKIMI", "LA PALMERA", "LOMO ALTO", "HOTEL ORIENTE", "HOTEL ARENAS",
+      "HOTEL TRES TORRES", "ESCAIRON", "LA BRASA RESTAURANTE", "RTE ANCARES", "HOTEL SB WIN SANT FELIU",
+      "RTE MAMETORA", "R.U. COSMOPOLITAN", "ESCUELA JUDICIAL BCN", "O MEU LAR", "GREENVITA NUMANCIA",
+      "EL RACONET D'URGELL", "CHALITO BCN.", "CLUB TIRO MONTJUIT", "FRANKFURT SANTS",
+      "R.U. EMILIE DE VILLENUEVE", "SOLUCIONS SOCIALS INSERCIO", "ALTIMA SANT BOI",
+      "FUNDACIO ASPACE CATALUNYA", "GREEN VITA GLORIES", "ATICCO PASSEIG DE GRÀCIA OFICINA", "SANED THAU"
+    ]
+  };
+
   const routeNames = ["Ruta 1","Ruta 2","Ruta 3","Ruta 4","Ruta 5","Clientes que llaman"];
   const keyFor = (route) => route.toLowerCase().split(' ').join('_').replaceAll('ñ','n');
 
-  // ======= ESTADO Y PERSISTENCIA =======
+  // ======= HELPERS Y ELEMENTOS =======
   const $ = (s,root=document)=>root.querySelector(s);
   const $$ = (s,root=document)=>[...root.querySelectorAll(s)];
+
   const activeSelect = $('#active-select');
   const browseSelect = $('#browse-select');
   const activeListEl = $('#active-list');
@@ -174,6 +427,9 @@
   const btnSetActive = $('#btn-set-active');
   const btnEdit = $('#btn-edit');
   const btnReset = $('#btn-reset');
+  const btnCopy = $('#btn-copy');
+  const btnMarkAll = $('#btn-mark-all');
+  const btnClearChecks = $('#btn-clear-checks');
   const inputManual = $('#manual-add');
   const btnManualAdd = $('#btn-manual-add');
   const allClientsDL = $('#all-clients');
@@ -181,23 +437,115 @@
   const addBar = $('#add-bar');
   const btnAddSelected = $('#btn-add-selected');
   const btnAddBar = $('#btn-add-bar');
+  const dateSelect = $('#date-select');
+  const dateText = $('#date-text');
+  const activeRouteLabel = $('#active-route-label');
+  const activeSummary = $('#active-summary');
+  const statsText = $('#stats-text');
+  const searchInput = $('#search-input');
+  const searchResults = $('#search-results');
+  const filterButtons = $$('.filter-btn');
+
+  function getTodayStr(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+
+  let currentDate = localStorage.getItem('currentDate') || getTodayStr();
+  dateSelect.value = currentDate;
 
   let currentActiveRoute = localStorage.getItem('activeRouteName') || 'Ruta 1';
   let routeStates = {}; // { routeName: [{name,visited}], ... }
+  let editMode = false;
+  let currentFilter = 'all';
 
-  // cargar estados guardados (si los hay)
-  for (const r of routeNames){
-    const saved = localStorage.getItem('state_'+keyFor(r));
-    if (saved){ try{ routeStates[r] = JSON.parse(saved); }catch{ /* ignore */ } }
+  function storageKey(route){
+    return 'state_'+keyFor(route)+'_'+currentDate;
   }
 
-  // helpers de persistencia
+  function ensureState(route){
+    if (routeStates[route]) return;
+    let list = null;
+
+    // estado guardado por fecha
+    const stored = localStorage.getItem(storageKey(route));
+    if (stored){
+      try{ list = JSON.parse(stored); }catch{ list = null; }
+    }
+
+    // compatibilidad con estado antiguo sin fecha
+    if (!list){
+      const legacy = localStorage.getItem('state_'+keyFor(route));
+      if (legacy){
+        try{ list = JSON.parse(legacy); }catch{ list = null; }
+      }
+    }
+
+    if (!list){
+      list = baseRoutes[route].map(n=>({name:n, visited:false}));
+    }
+
+    routeStates[route] = list;
+  }
+
   function saveRouteState(route){
-    localStorage.setItem('state_'+keyFor(route), JSON.stringify(routeStates[route]||[]));
+    localStorage.setItem(storageKey(route), JSON.stringify(routeStates[route] || []));
   }
+
   function setActiveRouteName(name){
     currentActiveRoute = name;
     localStorage.setItem('activeRouteName', name);
+  }
+
+  function updateActiveRouteLabel(){
+    activeRouteLabel.textContent = currentActiveRoute;
+  }
+
+  function updateDateLabel(){
+    const [y,m,d] = currentDate.split('-');
+    const dateObj = new Date(Number(y), Number(m)-1, Number(d));
+    let formatted = dateObj.toLocaleDateString('es-ES', {
+      weekday:'long',
+      year:'numeric',
+      month:'long',
+      day:'numeric'
+    });
+    formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    dateText.textContent = formatted;
+  }
+
+  function updateActiveSummary(){
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute] || [];
+    const total = list.length;
+    const visited = list.filter(i=>i.visited).length;
+    const pending = total - visited;
+
+    if (!total){
+      activeSummary.textContent = 'No hay clientes en la ruta activa.';
+    } else {
+      activeSummary.textContent = `Ruta ${currentActiveRoute}: ${visited} de ${total} visitados (pendientes: ${pending})`;
+    }
+  }
+
+  function updateGlobalStats(){
+    let total = 0;
+    let visited = 0;
+    routeNames.forEach(r=>{
+      ensureState(r);
+      const list = routeStates[r] || [];
+      total += list.length;
+      visited += list.filter(i=>i.visited).length;
+    });
+    const pending = total - visited;
+    if (!total){
+      statsText.textContent = 'No hay datos para esta fecha.';
+    } else {
+      statsText.textContent = `Clientes en todas las rutas (${currentDate}): ${visited} visitados de ${total} (pendientes: ${pending})`;
+    }
   }
 
   // ======= INICIALIZACIÓN DE SELECTS Y DATALIST =======
@@ -205,10 +553,14 @@
     sel.innerHTML = '';
     for (const r of routeNames){
       const opt = document.createElement('option');
-      opt.value = r; opt.textContent = r; sel.appendChild(opt);
+      opt.value = r;
+      opt.textContent = r;
+      sel.appendChild(opt);
     }
   }
-  fillSelect(activeSelect); fillSelect(browseSelect);
+
+  fillSelect(activeSelect);
+  fillSelect(browseSelect);
   activeSelect.value = currentActiveRoute;
   browseSelect.value = routeNames[0];
 
@@ -218,7 +570,9 @@
     routeNames.forEach(r=> baseRoutes[r].forEach(n=> set.add(n)));
     allClientsDL.innerHTML = '';
     for (const n of set){
-      const o = document.createElement('option'); o.value = n; allClientsDL.appendChild(o);
+      const o = document.createElement('option');
+      o.value = n;
+      allClientsDL.appendChild(o);
     }
   })();
 
@@ -228,7 +582,9 @@
     hints.innerHTML = '';
     hist.forEach(n=>{
       const c = document.createElement('button');
-      c.className = 'chip'; c.textContent = '+ '+n;
+      c.className = 'chip';
+      c.textContent = '+ '+n;
+      c.type = 'button';
       c.addEventListener('click', ()=>{ addToActive([n]); });
       hints.appendChild(c);
     });
@@ -241,6 +597,7 @@
     localStorage.setItem('recentAdds', JSON.stringify(arr));
     refreshHints();
   }
+
   function removeFromRecent(name){
     const hist = JSON.parse(localStorage.getItem('recentAdds')||'[]');
     const arr = hist.filter(x=>x!==name);
@@ -249,18 +606,19 @@
   }
 
   // ======= CARGA DE LISTAS =======
-  function ensureState(route){
-    if (!routeStates[route]){
-      routeStates[route] = baseRoutes[route].map(n=>({name:n, visited:false}));
-    }
-  }
-
   function renderActive(){
     ensureState(currentActiveRoute);
     const list = routeStates[currentActiveRoute];
     activeListEl.innerHTML = '';
+
     list.forEach((item, idx)=>{
-      const li = document.createElement('li'); li.className='item'; li.dataset.index = idx;
+      // filtro
+      if (currentFilter === 'pending' && item.visited) return;
+      if (currentFilter === 'visited' && !item.visited) return;
+
+      const li = document.createElement('li');
+      li.className='item';
+      li.dataset.index = idx;
 
       const cb = document.createElement('input');
       cb.type='checkbox';
@@ -270,6 +628,8 @@
         item.visited = cb.checked;
         saveRouteState(currentActiveRoute);
         li.classList.toggle('visited', item.visited);
+        updateActiveSummary();
+        updateGlobalStats();
       });
 
       const num = document.createElement('span');
@@ -280,30 +640,35 @@
       name.className='name';
       name.textContent=item.name;
 
-      const handle = document.createElement('button'); 
-      handle.className='handle btn ghost shrink'; 
-      handle.title='Arrastrar para reordenar'; 
+      const handle = document.createElement('button');
+      handle.className='handle btn ghost shrink';
+      handle.title='Arrastrar para reordenar';
+      handle.type = 'button';
       handle.textContent='';
       makeDraggable(li, handle, list);
 
-      const del = document.createElement('button'); 
-      del.className='del'; 
-      del.title='Eliminar'; 
+      const del = document.createElement('button');
+      del.className='del';
+      del.title='Eliminar';
       del.textContent='–';
+      del.type = 'button';
       del.addEventListener('click', ()=>{
         const nameToRemove = item.name;
         list.splice(idx,1);
         saveRouteState(currentActiveRoute);
         renderActive();
         removeFromRecent(nameToRemove);
+        updateActiveSummary();
+        updateGlobalStats();
       });
 
       if (item.visited) li.classList.add('visited');
-      // Orden: checkbox · número · nombre · handle · eliminar
       li.append(cb, num, name, handle, del);
       activeListEl.appendChild(li);
     });
+
     activeListEl.parentElement.classList.toggle('edit-mode', editMode);
+    updateActiveSummary();
   }
 
   function renderBrowse(){
@@ -311,10 +676,16 @@
     const names = baseRoutes[r];
     browseListEl.innerHTML = '';
     names.forEach((n)=>{
-      const li = document.createElement('li'); li.className='item';
-      const cb = document.createElement('input'); cb.type='checkbox'; cb.className='check'; cb.dataset.name = n;
+      const li = document.createElement('li');
+      li.className='item';
+      const cb = document.createElement('input');
+      cb.type='checkbox';
+      cb.className='check';
+      cb.dataset.name = n;
       cb.addEventListener('change', updateSelectionBar);
-      const name = document.createElement('div'); name.className='name'; name.textContent = n;
+      const name = document.createElement('div');
+      name.className='name';
+      name.textContent = n;
       li.append(cb, name);
       browseListEl.appendChild(li);
     });
@@ -322,7 +693,6 @@
   }
 
   // ======= REORDENAR ELEGANTE (arrastrar con "handle") =======
-  let editMode = false;
   btnEdit.addEventListener('click', ()=>{
     editMode = !editMode;
     btnEdit.textContent = editMode ? 'Listo' : 'Editar';
@@ -332,19 +702,32 @@
   function makeDraggable(li, handle, list){
     let dragging = false, startY=0, startTop=0, startIdx=0, itemHeight=0, placeholder=null;
 
+    function getClientY(e){
+      if (e.touches && e.touches.length){
+        return e.touches[0].clientY;
+      }
+      return e.clientY ?? 0;
+    }
+
     function onPointerDown(e){
+      if (!editMode) return;
       e.preventDefault();
       dragging = true;
-      startY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+      startY = getClientY(e);
       const rect = li.getBoundingClientRect();
-      startTop = li.offsetTop; startIdx = +li.dataset.index; itemHeight = rect.height;
+      startTop = li.offsetTop;
+      startIdx = +li.dataset.index;
+      itemHeight = rect.height;
       li.classList.add('dragging');
       li.style.position='absolute';
-      li.style.left='0'; li.style.right='0'; li.style.width='100%';
+      li.style.left='0';
+      li.style.right='0';
+      li.style.width='100%';
       li.style.top = startTop + 'px';
       li.style.pointerEvents='none';
       // placeholder
-      placeholder = document.createElement('div'); placeholder.className='placeholder';
+      placeholder = document.createElement('div');
+      placeholder.className='placeholder';
       activeListEl.insertBefore(placeholder, li.nextSibling);
       window.addEventListener('pointermove', onPointerMove);
       window.addEventListener('pointerup', onPointerUp, {once:true});
@@ -354,7 +737,7 @@
 
     function onPointerMove(e){
       if (!dragging) return;
-      const y = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+      const y = getClientY(e);
       const dy = y - startY;
       li.style.top = (startTop + dy) + 'px';
       e.preventDefault();
@@ -369,7 +752,8 @@
     }
 
     function onPointerUp(){
-      if (!dragging) return; dragging=false;
+      if (!dragging) return;
+      dragging=false;
       // calcular índice final a partir del placeholder
       const children = [...activeListEl.children];
       const newIdx = Math.max(0, children.indexOf(placeholder));
@@ -382,6 +766,7 @@
         list.splice(newIdx,0,moved);
         saveRouteState(currentActiveRoute);
         renderActive();
+        updateGlobalStats();
       } else {
         // re-pintar índices
         $$('.item', activeListEl).forEach((el,i)=> el.dataset.index=i);
@@ -394,7 +779,7 @@
     handle.addEventListener('touchstart', onPointerDown, {passive:false});
   }
 
-  // ======= OPERACIONES =======
+  // ======= OPERACIONES RUTA ACTIVA =======
   function addToActive(names){
     ensureState(currentActiveRoute);
     const list = routeStates[currentActiveRoute];
@@ -403,10 +788,16 @@
     names.forEach(n=>{
       if (!existing.has(n)){
         list.push({name:n, visited:false});
-        existing.add(n); added++; pushRecent(n);
+        existing.add(n);
+        added++;
+        pushRecent(n);
       }
     });
-    if (added>0){ saveRouteState(currentActiveRoute); renderActive(); }
+    if (added>0){
+      saveRouteState(currentActiveRoute);
+      renderActive();
+      updateGlobalStats();
+    }
   }
 
   function updateSelectionBar(){
@@ -417,10 +808,56 @@
     addBar.classList.toggle('show', selected.length>0);
   }
 
+  // ======= BUSCADOR =======
+  function renderSearchResults(){
+    const q = searchInput.value.trim().toLowerCase();
+    searchResults.innerHTML = '';
+    if (q.length < 2) return;
+
+    const results = [];
+    routeNames.forEach(route=>{
+      baseRoutes[route].forEach((name, idx)=>{
+        if (name.toLowerCase().includes(q)){
+          results.push({route, name, index:idx});
+        }
+      });
+    });
+
+    if (!results.length){
+      const li = document.createElement('li');
+      li.className = 'item';
+      li.textContent = 'Sin coincidencias.';
+      searchResults.appendChild(li);
+      return;
+    }
+
+    results.slice(0,50).forEach(res=>{
+      const li = document.createElement('li');
+      li.className = 'item';
+
+      const desc = document.createElement('div');
+      desc.className = 'name';
+      desc.textContent = `${res.name} — ${res.route} (#${res.index+1})`;
+
+      const btn = document.createElement('button');
+      btn.className = 'btn ghost shrink';
+      btn.type = 'button';
+      btn.textContent = 'Añadir a activa';
+      btn.addEventListener('click', ()=>{
+        addToActive([res.name]);
+      });
+
+      li.append(desc, btn);
+      searchResults.appendChild(li);
+    });
+  }
+
   // ======= EVENTOS UI =======
   btnSetActive.addEventListener('click', ()=>{
     setActiveRouteName(activeSelect.value);
+    updateActiveRouteLabel();
     renderActive();
+    updateGlobalStats();
   });
 
   browseSelect.addEventListener('change', renderBrowse);
@@ -428,9 +865,10 @@
   btnAddSelected.addEventListener('click', ()=>{
     const names = $$('input.check:checked', browseListEl).map(cb=>cb.dataset.name);
     addToActive(names);
-    $$('input.check:checked', browseListEl).forEach(cb=> cb.checked=false);
+    $$( 'input.check:checked', browseListEl).forEach(cb=> cb.checked=false);
     updateSelectionBar();
   });
+
   btnAddBar.addEventListener('click', ()=>{ btnAddSelected.click(); });
 
   btnManualAdd.addEventListener('click', ()=>{
@@ -439,18 +877,88 @@
     addToActive([n]);
     inputManual.value='';
   });
-  inputManual.addEventListener('keydown', e=>{ if (e.key==='Enter') btnManualAdd.click(); });
+
+  inputManual.addEventListener('keydown', e=>{
+    if (e.key==='Enter') btnManualAdd.click();
+  });
 
   btnReset.addEventListener('click', ()=>{
-    if (!confirm('Esto restaurará la lista de la ruta activa a su estado original y limpiará los checks. ¿Seguro?')) return;
+    if (!confirm('Esto restaurará la lista de la ruta activa a su estado original para esta fecha y limpiará los checks. ¿Seguro?')) return;
     routeStates[currentActiveRoute] = baseRoutes[currentActiveRoute].map(n=>({name:n, visited:false}));
     saveRouteState(currentActiveRoute);
     renderActive();
+    updateGlobalStats();
+  });
+
+  btnCopy.addEventListener('click', ()=>{
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute] || [];
+    const [y,m,d] = currentDate.split('-');
+    const dateObj = new Date(Number(y), Number(m)-1, Number(d));
+    const dateStr = dateObj.toLocaleDateString('es-ES');
+
+    let text = `Ruta ${currentActiveRoute} – ${dateStr}\n`;
+    list.forEach((item, idx)=>{
+      const mark = item.visited ? '✓' : '•';
+      text += `${idx+1}. ${mark} ${item.name}\n`;
+    });
+
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(()=>{
+        alert('Ruta copiada al portapapeles');
+      }).catch(()=>{
+        alert('No se pudo copiar automáticamente. Este es el texto:\n\n'+text);
+      });
+    } else {
+      alert('Copia este texto:\n\n'+text);
+    }
+  });
+
+  btnMarkAll.addEventListener('click', ()=>{
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute] || [];
+    list.forEach(item=> item.visited = true);
+    saveRouteState(currentActiveRoute);
+    renderActive();
+    updateGlobalStats();
+  });
+
+  btnClearChecks.addEventListener('click', ()=>{
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute] || [];
+    list.forEach(item=> item.visited = false);
+    saveRouteState(currentActiveRoute);
+    renderActive();
+    updateGlobalStats();
+  });
+
+  dateSelect.addEventListener('change', ()=>{
+    currentDate = dateSelect.value || getTodayStr();
+    localStorage.setItem('currentDate', currentDate);
+    routeStates = {}; // reset cache para esta fecha
+    renderActive();
+    renderBrowse();
+    updateDateLabel();
+    updateGlobalStats();
+  });
+
+  searchInput.addEventListener('input', renderSearchResults);
+
+  filterButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      currentFilter = btn.dataset.filter;
+      filterButtons.forEach(b=> b.classList.toggle('active', b === btn));
+      renderActive();
+    });
   });
 
   // ======= INICIO =======
+  updateActiveRouteLabel();
+  updateDateLabel();
+  filterButtons.find(b => b.dataset.filter === 'all').classList.add('active');
   renderActive();
   renderBrowse();
+  updateGlobalStats();
   </script>
 </body>
 </html>
