@@ -309,7 +309,7 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Gestor de Rutas <span class="version">v 3.2.1</span> · <span class="tag">Activa del día</span></h1>
+    <h1>Gestor de Rutas <span class="version">v 3.3</span> · <span class="tag">Activa del día</span></h1>
     <p class="date-line">
       Día de trabajo:
       <input type="date" id="date-select">
@@ -480,7 +480,8 @@
   let currentFilter = 'all';
 
   function storageKey(route){
-    return 'state_'+keyFor(route)+'_'+currentDate;
+    // Persistencia por ruta, independiente de la fecha
+    return 'state_'+keyFor(route);
   }
 
   function ensureState(route){
@@ -490,13 +491,6 @@
     const stored = localStorage.getItem(storageKey(route));
     if (stored){
       try{ list = JSON.parse(stored); }catch{ list = null; }
-    }
-
-    if (!list){
-      const legacy = localStorage.getItem('state_'+keyFor(route));
-      if (legacy){
-        try{ list = JSON.parse(legacy); }catch{ list = null; }
-      }
     }
 
     if (!list){
@@ -544,9 +538,9 @@
     });
     const pending = total - visited;
     if (!total){
-      statsText.textContent = 'No hay datos para esta fecha.';
+      statsText.textContent = 'No hay datos.';
     } else {
-      statsText.textContent = `Clientes en todas las rutas (${currentDate}): ${visited} visitados de ${total} (pendientes: ${pending})`;
+      statsText.textContent = `Clientes en todas las rutas (estado actual): ${visited} visitados de ${total} (pendientes: ${pending})`;
     }
   }
 
@@ -709,7 +703,7 @@
     }
 
     function onPointerDown(e){
-      if (!editMode) return;
+      // AHORA SIEMPRE SE PUEDE ARRASTRAR, SIN NECESIDAD DE EDITAR
       e.preventDefault();
       dragging = true;
       startY = getClientY(e);
@@ -878,7 +872,7 @@
   });
 
   btnReset.addEventListener('click', ()=>{
-    if (!confirm('Esto restaurará la lista de la ruta activa a su estado original para esta fecha y limpiará los checks. ¿Seguro?')) return;
+    if (!confirm('Esto restaurará la lista de la ruta activa a su estado original y limpiará los checks. ¿Seguro?')) return;
     routeStates[currentActiveRoute] = baseRoutes[currentActiveRoute].map(n=>({name:n, visited:false}));
     saveRouteState(currentActiveRoute);
     renderActive();
@@ -930,10 +924,8 @@
   dateSelect.addEventListener('change', ()=>{
     currentDate = dateSelect.value || getTodayStr();
     localStorage.setItem('currentDate', currentDate);
-    routeStates = {};
-    renderActive();
-    renderBrowse();
-    updateGlobalStats();
+    // Solo actualizamos texto que usa la fecha (copiar ruta),
+    // la faena del día se mantiene tal cual.
   });
 
   searchInput.addEventListener('input', renderSearchResults);
