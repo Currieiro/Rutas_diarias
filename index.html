@@ -522,3 +522,451 @@
 
     if (!total){
       activeSummary.textContent = 'No hay clientes en la ruta activa.';
+    } else {
+      activeSummary.textContent = `Ruta ${currentActiveRoute}: ${visited} de ${total} visitados (pendientes: ${pending})`;
+    }
+  }
+
+  function updateGlobalStats(){
+    let total = 0;
+    let visited = 0;
+    routeNames.forEach(r=>{
+      ensureState(r);
+      const list = routeStates[r] || [];
+      total += list.length;
+      visited += list.filter(i=>i.visited).length;
+    });
+    const pending = total - visited;
+    if (!total){
+      statsText.textContent = 'No hay datos.';
+    } else {
+      statsText.textContent = `Clientes en todas las rutas (estado actual): ${visited} visitados de ${total} (pendientes: ${pending})`;
+    }
+  }
+
+  // ======= SELECTS Y DATALIST =======
+  function fillSelect(sel){
+    sel.innerHTML = '';
+    for (const r of routeNames){
+      const opt = document.createElement('option');
+      opt.value = r;
+      opt.textContent = r;
+      sel.appendChild(opt);
+    }
+  }
+
+  fillSelect(activeSelect);
+  fillSelect(browseSelect);
+  activeSelect.value = currentActiveRoute;
+  browseSelect.value = routeNames[0];
+
+  (function populateDatalist(){
+    const set = new Set();
+    routeNames.forEach(r=> baseRoutes[r].forEach(n=> set.add(n)));
+    allClientsDL.innerHTML = '';
+    for (const n of set){
+      const o = document.createElement('option');
+      o.value = n;
+      allClientsDL.appendChild(o);
+    }
+  })();
+
+  function refreshHints(){
+    const hist = JSON.parse(localStorage.getItem('recentAdds')||'[]');
+    hints.innerHTML = '';
+    hist.forEach(n=>{
+      const c = document.createElement('button');
+      c.className = 'chip';
+      c.textContent = '+ '+n;
+      c.type = 'button';
+      c.addEventListener('click', ()=>{ addToActive([n]); });
+      hints.appendChild(c);
+    });
+  }
+  refreshHints();
+
+  function pushRecent(name){
+    const hist = JSON.parse(localStorage.getItem('recentAdds')||'[]');
+    const arr = [name, ...hist.filter(x=>x!==name)].slice(0,5);
+    localStorage.setItem('recentAdds', JSON.stringify(arr));
+    refreshHints();
+  }
+
+  function removeFromRecent(name){
+    const hist = JSON.parse(localStorage.getItem('recentAdds')||'[]');
+    const arr = hist.filter(x=>x!==name);
+    localStorage.setItem('recentAdds', JSON.stringify(arr));
+    refreshHints();
+  }
+
+  // ======= RENDER RUTAS =======
+  function renderActive(){
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute];
+    activeListEl.innerHTML = '';
+
+    list.forEach((item, idx)=>{
+      if (currentFilter === 'pending' && item.visited) return;
+      if (currentFilter === 'visited' && !item.visited) return;
+
+      const li = document.createElement('li');
+      li.className='item';
+      li.dataset.index = idx;
+
+      const cb = document.createElement('input');
+      cb.type='checkbox';
+      cb.className='check';
+      cb.checked=!!item.visited;
+      cb.addEventListener('change', ()=>{
+        item.visited = cb.checked;
+        saveRouteState(currentActiveRoute);
+        li.classList.toggle('visited', item.visited);
+        updateActiveSummary();
+        updateGlobalStats();
+      });
+
+      const num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = (idx + 1) + '.';
+
+      const name = document.createElement('div');
+      name.className='name';
+      name.textContent=item.name;
+
+      const handle = document.createElement('button');
+      handle.className='handle btn ghost shrink';
+      handle.title='Arrastrar para reordenar';
+      handle.type = 'button';
+      handle.textContent='';
+      makeDraggable(li, handle, list);
+
+      const del = document.createElement('button');
+      del.className='del';
+      del.title='Eliminar';
+      del.textContent='–';
+      del.type = 'button';
+      del.addEventListener('click', ()=>{
+        const nameToRemove = item.name;
+        list.splice(idx,1);
+        saveRouteState(currentActiveRoute);
+        renderActive();
+        removeFromRecent(nameToRemove);
+        updateActiveSummary();
+        updateGlobalStats();
+      });
+
+      if (item.visited) li.classList.add('visited');
+      li.append(cb, num, name, handle, del);
+      activeListEl.appendChild(li);
+    });
+
+    activeListEl.parentElement.classList.toggle('edit-mode', editMode);
+    updateActiveSummary();
+  }
+
+  function renderBrowse(){
+    const r = browseSelect.value;
+    const names = baseRoutes[r];
+    browseListEl.innerHTML = '';
+    names.forEach((n)=>{
+      const li = document.createElement('li');
+      li.className='item';
+      const cb = document.createElement('input');
+      cb.type='checkbox';
+      cb.className='check';
+      cb.dataset.name = n;
+      cb.addEventListener('change', updateSelectionBar);
+      const name = document.createElement('div');
+      name.className='name';
+      name.textContent = n;
+      li.append(cb, name);
+      browseListEl.appendChild(li);
+    });
+    updateSelectionBar();
+  }
+
+  // ======= DRAG & DROP (solo en filtro "Todos") =======
+  btnEdit.addEventListener('click', ()=>{
+    editMode = !editMode;
+    btnEdit.textContent = editMode ? 'Listo' : 'Editar';
+    activeListEl.parentElement.classList.toggle('edit-mode', editMode);
+  });
+
+  function makeDraggable(li, handle, list){
+    let dragging = false;
+    let startY = 0;
+    let startTop = 0;
+    let placeholder = null;
+    let snapshot = null; // copia del array antes de mover
+
+    function getClientY(e){
+      if (e.touches && e.touches.length){
+        return e.touches[0].clientY;
+      }
+      return e.clientY ?? 0;
+    }
+
+    function onPointerDown(e){
+      // Solo permitimos arrastrar cuando el filtro es "Todos"
+      if (currentFilter !== 'all') return;
+
+      e.preventDefault();
+      dragging = true;
+      startY = getClientY(e);
+      const rect = li.getBoundingClientRect();
+      startTop = li.offsetTop;
+
+      snapshot = (routeStates[currentActiveRoute] || []).slice();
+
+      li.classList.add('dragging');
+      li.style.position='absolute';
+      li.style.left='0';
+      li.style.right='0';
+      li.style.width='100%';
+      li.style.top = startTop + 'px';
+      li.style.pointerEvents='none';
+
+      placeholder = document.createElement('div');
+      placeholder.className='placeholder';
+      placeholder.style.height = rect.height + 'px';
+      activeListEl.insertBefore(placeholder, li.nextSibling);
+
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerUp, {once:true});
+      window.addEventListener('touchmove', onPointerMove, {passive:false});
+      window.addEventListener('touchend', onPointerUp, {once:true});
+    }
+
+    function onPointerMove(e){
+      if (!dragging) return;
+      const y = getClientY(e);
+      const dy = y - startY;
+      li.style.top = (startTop + dy) + 'px';
+      e.preventDefault();
+
+      const rect = li.getBoundingClientRect();
+      const centerY = rect.top + rect.height / 2;
+
+      const siblings = [...activeListEl.children].filter(el => el !== li && el !== placeholder);
+      let placed = false;
+      for (const el of siblings){
+        const r = el.getBoundingClientRect();
+        const mid = r.top + r.height / 2;
+        if (centerY < mid){
+          activeListEl.insertBefore(placeholder, el);
+          placed = true;
+          break;
+        }
+      }
+      if (!placed){
+        activeListEl.appendChild(placeholder);
+      }
+    }
+
+    function onPointerUp(){
+      if (!dragging) return;
+      dragging = false;
+
+      // Colocamos el <li> en el sitio del placeholder
+      activeListEl.insertBefore(li, placeholder);
+      placeholder.remove();
+      li.classList.remove('dragging');
+      li.style.cssText='';
+
+      if (snapshot){
+        const domItems = $$('.item', activeListEl);
+        const newList = domItems.map(el => snapshot[Number(el.dataset.index)]);
+        routeStates[currentActiveRoute] = newList;
+        saveRouteState(currentActiveRoute);
+        renderActive();
+        updateGlobalStats();
+      }
+
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('touchmove', onPointerMove);
+      // pointerup/touchend tienen {once:true}, se limpian solos
+    }
+
+    handle.addEventListener('pointerdown', onPointerDown);
+    handle.addEventListener('touchstart', onPointerDown, {passive:false});
+  }
+
+  // ======= OPERACIONES RUTA ACTIVA =======
+  function addToActive(names){
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute];
+    const existing = new Set(list.map(x=>x.name));
+    let added = 0;
+    names.forEach(n=>{
+      if (!existing.has(n)){
+        list.push({name:n, visited:false});
+        existing.add(n);
+        added++;
+        pushRecent(n);
+      }
+    });
+    if (added>0){
+      saveRouteState(currentActiveRoute);
+      renderActive();
+      updateGlobalStats();
+    }
+  }
+
+  function updateSelectionBar(){
+    const selected = $$('input.check:checked', browseListEl).map(cb=>cb.dataset.name);
+    btnAddSelected.disabled = selected.length===0;
+    btnAddSelected.textContent = `+ (${selected.length})`;
+    btnAddBar.textContent = `Añadir ${selected.length} seleccionados a la activa`;
+    addBar.classList.toggle('show', selected.length>0);
+  }
+
+  // ======= BUSCADOR =======
+  function renderSearchResults(){
+    const q = searchInput.value.trim().toLowerCase();
+    searchResults.innerHTML = '';
+    if (q.length < 2) return;
+
+    const results = [];
+    routeNames.forEach(route=>{
+      baseRoutes[route].forEach((name, idx)=>{
+        if (name.toLowerCase().includes(q)){
+          results.push({route, name, index:idx});
+        }
+      });
+    });
+
+    if (!results.length){
+      const li = document.createElement('li');
+      li.className = 'item';
+      li.textContent = 'Sin coincidencias.';
+      searchResults.appendChild(li);
+      return;
+    }
+
+    results.slice(0,50).forEach(res=>{
+      const li = document.createElement('li');
+      li.className = 'item';
+
+      const desc = document.createElement('div');
+      desc.className = 'name';
+      desc.textContent = `${res.name} — ${res.route} (#${res.index+1})`;
+
+      const btn = document.createElement('button');
+      btn.className = 'btn ghost shrink';
+      btn.type = 'button';
+      btn.textContent = 'Añadir a activa';
+      btn.addEventListener('click', ()=>{
+        addToActive([res.name]);
+      });
+
+      li.append(desc, btn);
+      searchResults.appendChild(li);
+    });
+  }
+
+  // ======= EVENTOS UI =======
+  btnSetActive.addEventListener('click', ()=>{
+    setActiveRouteName(activeSelect.value);
+    updateActiveRouteLabel();
+    renderActive();
+    updateGlobalStats();
+  });
+
+  browseSelect.addEventListener('change', renderBrowse);
+
+  btnAddSelected.addEventListener('click', ()=>{
+    const names = $$('input.check:checked', browseListEl).map(cb=>cb.dataset.name);
+    addToActive(names);
+    $$('input.check:checked', browseListEl).forEach(cb=> cb.checked=false);
+    updateSelectionBar();
+  });
+
+  btnAddBar.addEventListener('click', ()=>{ btnAddSelected.click(); });
+
+  btnManualAdd.addEventListener('click', ()=>{
+    const n = (inputManual.value||'').trim();
+    if (!n) return;
+    addToActive([n]);
+    inputManual.value='';
+  });
+
+  inputManual.addEventListener('keydown', e=>{
+    if (e.key==='Enter') btnManualAdd.click();
+  });
+
+  btnReset.addEventListener('click', ()=>{
+    if (!confirm('Esto restaurará la lista de la ruta activa a su estado original y limpiará los checks. ¿Seguro?')) return;
+    routeStates[currentActiveRoute] = baseRoutes[currentActiveRoute].map(n=>({name:n, visited:false}));
+    saveRouteState(currentActiveRoute);
+    renderActive();
+    updateGlobalStats();
+  });
+
+  btnCopy.addEventListener('click', ()=>{
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute] || [];
+    const [y,m,d] = currentDate.split('-');
+    const dateObj = new Date(Number(y), Number(m)-1, Number(d));
+    const dateStr = dateObj.toLocaleDateString('es-ES');
+
+    let text = `Ruta ${currentActiveRoute} – ${dateStr}\n`;
+    list.forEach((item, idx)=>{
+      const mark = item.visited ? '✓' : '•';
+      text += `${idx+1}. ${mark} ${item.name}\n`;
+    });
+
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(()=>{
+        alert('Ruta copiada al portapapeles');
+      }).catch(()=>{
+        alert('No se pudo copiar automáticamente. Este es el texto:\n\n'+text);
+      });
+    } else {
+      alert('Copia este texto:\n\n'+text);
+    }
+  });
+
+  btnMarkAll.addEventListener('click', ()=>{
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute] || [];
+    list.forEach(item=> item.visited = true);
+    saveRouteState(currentActiveRoute);
+    renderActive();
+    updateGlobalStats();
+  });
+
+  btnClearChecks.addEventListener('click', ()=>{
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute] || [];
+    list.forEach(item=> item.visited = false);
+    saveRouteState(currentActiveRoute);
+    renderActive();
+    updateGlobalStats();
+  });
+
+  dateSelect.addEventListener('change', ()=>{
+    currentDate = dateSelect.value || getTodayStr();
+    localStorage.setItem('currentDate', currentDate);
+    // Solo actualizamos texto que usa la fecha (copiar ruta),
+    // la faena del día se mantiene tal cual.
+  });
+
+  searchInput.addEventListener('input', renderSearchResults);
+
+  filterButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      currentFilter = btn.dataset.filter;
+      filterButtons.forEach(b=> b.classList.toggle('active', b === btn));
+      renderActive();
+    });
+  });
+
+  // ======= INICIO =======
+  updateActiveRouteLabel();
+  filterButtons.find(b => b.dataset.filter === 'all').classList.add('active');
+  renderActive();
+  renderBrowse();
+  updateGlobalStats();
+  </script>
+</body>
+</html>
