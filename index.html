@@ -112,6 +112,17 @@
     input[type="date"]{
       background:transparent;
       color:var(--text);
+      border:1px solid var(--accent);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:1rem;
+      box-sizing:border-box;
+      width:100%;
+    }
+
+    input[type="date"]:focus{
+      outline:2px solid var(--accent);
+      outline-offset:2px;
     }
 
     .row{
@@ -305,11 +316,20 @@
       font-size:.8rem;
       color:var(--muted);
     }
+
+    /* historial preview */
+    #history-preview .item{
+      padding:10px 2px;
+    }
+    #history-preview .mini{
+      font-size:.8rem;
+      color:var(--muted);
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Gestor de Rutas <span class="version">v 4.1.4</span> · <span class="tag">Activa del día</span></h1>
+    <h1>Gestor de Rutas <span class="version">v 4.2.0</span> · <span class="tag">Activa del día</span></h1>
     <p class="date-line">
       Día de trabajo:
       <input type="date" id="date-select">
@@ -379,6 +399,65 @@
       <h2>Resumen del día</h2>
       <p id="stats-text" class="summary"></p>
     </section>
+
+    <!-- HISTORIAL -->
+    <section class="card" id="card-history">
+      <h2>Historial</h2>
+
+      <div class="row" style="margin-bottom:8px">
+        <select id="history-select" aria-label="Registros guardados"></select>
+        <button id="btn-history-view" class="btn ghost shrink" type="button">Ver</button>
+        <button id="btn-history-load" class="btn shrink" type="button">Cargar</button>
+      </div>
+
+      <div class="row" style="margin-bottom:8px">
+        <button id="btn-history-edit" class="btn ghost shrink" type="button">Editar</button>
+        <button id="btn-history-delete" class="btn danger shrink" type="button">Eliminar</button>
+        <button id="btn-history-export-text" class="btn ghost" type="button">Exportar texto</button>
+        <button id="btn-history-export-json" class="btn ghost" type="button">Exportar JSON</button>
+      </div>
+
+      <div class="row" style="margin-bottom:8px">
+        <button id="btn-history-export-all" class="btn ghost" type="button">Exportar TODO (JSON)</button>
+        <button id="btn-history-import" class="btn ghost" type="button">Importar (JSON)</button>
+        <input id="history-import-file" type="file" accept="application/json" style="display:none" />
+      </div>
+
+      <div id="history-edit-panel" class="card" style="display:none; margin-top:8px">
+        <h2 style="margin-bottom:6px">Editar registro</h2>
+        <div class="row" style="margin-bottom:8px">
+          <label style="flex:1; font-size:.85rem; color:var(--muted)">
+            Fecha de trabajo
+            <input id="history-edit-date" type="date" />
+          </label>
+          <label style="flex:2; font-size:.85rem; color:var(--muted)">
+            Nombre (opcional)
+            <input id="history-edit-title" type="text" placeholder="Ej: Viernes tarde / urgentes / etc." />
+          </label>
+        </div>
+        <label style="display:block; font-size:.85rem; color:var(--muted); margin-bottom:8px">
+          Nota (opcional)
+          <input id="history-edit-note" type="text" placeholder="Ej: devoluciones, cobros, incidencias…" />
+        </label>
+
+        <div class="row">
+          <button id="btn-history-edit-save" class="btn" type="button">Guardar</button>
+          <button id="btn-history-edit-cancel" class="btn ghost" type="button">Cancelar</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:10px">
+        <h2>Archivo mensual</h2>
+        <div class="row" style="margin-bottom:8px">
+          <select id="month-select" aria-label="Mes a archivar"></select>
+          <button id="btn-archive-month" class="btn shrink" type="button">Archivar + Descargar + Limpiar</button>
+        </div>
+        <p class="summary" id="month-summary"></p>
+      </div>
+
+      <ul id="history-preview" class="list"></ul>
+      <p id="history-meta" class="summary"></p>
+    </section>
   </div>
 
   <div class="bar" id="add-bar">
@@ -404,25 +483,26 @@
       "ARTESANO", "BOEDO", "AMAZONAS", "CAFÉ Y TÉ RAMBLA CATALUNYA", "MOLÍ I PAN RAMBLA CATALUNYA", "KAYI", "LA CASSOLETA", "CENTRO ASTURIANO"
     ],
     "Ruta 4": [
-      "EL NACIONAL", "EL PEDREGAL", "TIENDA CONSELL DE CENT", "LESTONAC", "ORDAL", "FRIDA", "YIMA", "CAFETERÍA PIPA'S", "TIENDA CLOT", 
+      "EL NACIONAL", "EL PEDREGAL", "TIENDA CONSELL DE CENT", "LESTONAC", "ORDAL", "FRIDA", "YIMA", "CAFETERÍA PIPA'S", "TIENDA CLOT",
       "LA RUTA GALLEGA", "BAR CAÑAS", "RINCÓN GALLEGO MERIDIANA", "TIENDA MERIDIANA II",
       "RINCON GALEGO", "TIENDA JOAQUIM VALLS", "ZAMORA", "FRANKFURT TOLIK", "FURACU", "MI RINCÓN", "CASA ANGEL", "BAR EUROPA", "EL MIRALL DELS ENCANTS"
     ],
     "Ruta 5": [
-      "TIENDA TORRAS I BAGES", "TIENDA VIA JULIA", "VALLDAURA", "TIENDA TALLER VALLDAURA", "AMPARITO", "JURNET", "MIRASOL", "CAFE, CAFE", "FRIDA", "SEGRE", 
+      "TIENDA TORRAS I BAGES", "TIENDA VIA JULIA", "VALLDAURA", "TIENDA TALLER VALLDAURA", "AMPARITO", "JURNET", "MIRASOL",
+      "CAFE, CAFE", "FRIDA", "SEGRE",
       "SOLANA", "AQUÍ ME QUEDO", "CENTRE CIVIC SANT MARTÍ", "DEPAS", "LUCENA"
-       
     ],
     "Clientes que llaman": [
-      "RTE PIPA", "100 MONTADITOS", "LA PERLA", "CANTONES", "DAZHONG", "SURKANA", "O BURATO BAR", "A PROP TEU", "DAMAIA", "ANTOTXO", "TEATRO NACIONAL DE CATALUNYA",
-       "ESTACIÓN DE SERVICIO PARALELO", "SMASH HIRO", "EVENTOS MUXIA", "BESTA", "TIO BIGOTES",
+      "RTE PIPA", "100 MONTADITOS", "LA PERLA", "CANTONES", "DAZHONG", "SURKANA", "O BURATO BAR", "A PROP TEU", "DAMAIA", "ANTOTXO",
+      "TEATRO NACIONAL DE CATALUNYA",
+      "ESTACIÓN DE SERVICIO PARALELO", "SMASH HIRO", "EVENTOS MUXIA", "BESTA", "TIO BIGOTES",
       "HOTEL ZENIT", "BAR 70/30", "ALTIMA RONDA DE DALT", "HELADERÍA ADRI",
       "GULA SANA", "PIERRE VACANCES OFICINAS", "PIERRE VACANCES SANTS", "RESTAURANT CENT FOCS",
       "HOTEL MESON CASTILLA", "BAR RTE LEPANTO", "ATICCO BAILÉN OFICINA", "ATICCO BAILÉN CANTINA",
       "SARA TAPES", "HOTEL SB GLOW", "HOTEL SB ICARIA BARCELONA", "ATICCO MONUMENTAL OFICINA",
-      "LA FILOMENA BAR", "EUROSTARS ANGLI", "ATICCO PASSEIG DE GRÀCIA CANTINA", "BARCELONA CENTRAL", 
-      "EXE LAIETANA PALACE", "EUROSTARS CRISTAL PALACE", "ATICCO MONUMENTAL CANTINA", 
-       "EXE PLAZA CATALUNYA", "EUROSTARS MONUMENTAL", "ATICCO VERDAGUER OFICINA", "ATICCO VERDAGUER CANTINA", 
+      "LA FILOMENA BAR", "EUROSTARS ANGLI", "ATICCO PASSEIG DE GRÀCIA CANTINA", "BARCELONA CENTRAL",
+      "EXE LAIETANA PALACE", "EUROSTARS CRISTAL PALACE", "ATICCO MONUMENTAL CANTINA",
+      "EXE PLAZA CATALUNYA", "EUROSTARS MONUMENTAL", "ATICCO VERDAGUER OFICINA", "ATICCO VERDAGUER CANTINA",
       "EUROSTARS MITRE", "RESTAURANTE LA GORMANDA", "ADELITA RESTAURANTE",
       "LOKAL", "BATEA", "TSUKIMI", "LA PALMERA", "LOMO ALTO", "HOTEL ARENAS",
       "HOTEL TRES TORRES", "LA BRASA RESTAURANTE", "RTE ANCARES",
@@ -464,6 +544,32 @@
   const searchResults = $('#search-results');
   const filterButtons = $$('.filter-btn');
 
+  // ======= HISTORIAL: ELEMENTOS UI =======
+  const historySelect = $('#history-select');
+  const btnHistoryView = $('#btn-history-view');
+  const btnHistoryLoad = $('#btn-history-load');
+  const btnHistoryEdit = $('#btn-history-edit');
+  const btnHistoryDelete = $('#btn-history-delete');
+  const btnHistoryExportText = $('#btn-history-export-text');
+  const btnHistoryExportJson = $('#btn-history-export-json');
+  const btnHistoryExportAll = $('#btn-history-export-all');
+  const btnHistoryImport = $('#btn-history-import');
+  const historyImportFile = $('#history-import-file');
+  const historyPreview = $('#history-preview');
+  const historyMeta = $('#history-meta');
+
+  const historyEditPanel = $('#history-edit-panel');
+  const historyEditDate = $('#history-edit-date');
+  const historyEditTitle = $('#history-edit-title');
+  const historyEditNote = $('#history-edit-note');
+  const btnHistoryEditSave = $('#btn-history-edit-save');
+  const btnHistoryEditCancel = $('#btn-history-edit-cancel');
+
+  const monthSelect = $('#month-select');
+  const btnArchiveMonth = $('#btn-archive-month');
+  const monthSummary = $('#month-summary');
+
+  // ======= UTILIDADES =======
   function getTodayStr(){
     const d = new Date();
     const y = d.getFullYear();
@@ -472,6 +578,33 @@
     return `${y}-${m}-${day}`;
   }
 
+  function formatES(dateStr){
+    try{
+      const [y,m,d] = dateStr.split('-');
+      const dt = new Date(Number(y), Number(m)-1, Number(d));
+      return dt.toLocaleDateString('es-ES');
+    }catch{
+      return dateStr;
+    }
+  }
+
+  function uid(){
+    return 'h_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+  }
+
+  function downloadJSON(filename, obj){
+    const blob = new Blob([JSON.stringify(obj, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // ======= ESTADO APP =======
   let currentDate = localStorage.getItem('currentDate') || getTodayStr();
   dateSelect.value = currentDate;
 
@@ -865,6 +998,448 @@
     });
   }
 
+  // ======= HISTORIAL (REGISTRO) =======
+  const HISTORY_KEY = 'route_history_v1';
+  const ARCHIVE_KEY = 'route_archives_monthly_v1';
+
+  function loadHistory(){
+    try{ return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]') || []; }
+    catch{ return []; }
+  }
+  function saveHistory(arr){
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(arr || []));
+  }
+
+  function loadArchives(){
+    try{ return JSON.parse(localStorage.getItem(ARCHIVE_KEY) || '[]') || []; }
+    catch{ return []; }
+  }
+  function saveArchives(arr){
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(arr || []));
+  }
+
+  function sortHistory(records){
+    return records.slice().sort((a,b)=>{
+      const da = (a.workDate || '');
+      const db = (b.workDate || '');
+      if (da !== db) return db.localeCompare(da);
+      const sa = (a.savedAt || '');
+      const sb = (b.savedAt || '');
+      return sb.localeCompare(sa);
+    });
+  }
+
+  function computeNextSeq(records, workDate, routeName){
+    const same = records.filter(r => r.workDate === workDate && r.routeName === routeName);
+    const maxSeq = same.reduce((m,r)=> Math.max(m, Number(r.seq||1)), 0);
+    return maxSeq + 1;
+  }
+
+  function recordLabel(r){
+    const base = `${r.workDate} — ${r.routeName}${(r.seq && r.seq>1) ? ` (${r.seq})` : ''}`;
+    const extra = (r.title && r.title.trim()) ? ` · ${r.title.trim()}` : '';
+    return base + extra;
+  }
+
+  function refreshMonthUI(){
+    const records = loadHistory();
+    const months = [...new Set(records
+      .map(r => (r.workDate||'').slice(0,7))
+      .filter(m => /^\d{4}-\d{2}$/.test(m))
+    )].sort((a,b)=> b.localeCompare(a));
+
+    monthSelect.innerHTML = '';
+    if (!months.length){
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '— Sin meses —';
+      monthSelect.appendChild(opt);
+      monthSelect.disabled = true;
+      btnArchiveMonth.disabled = true;
+      monthSummary.textContent = 'No hay registros para archivar.';
+      return;
+    }
+
+    monthSelect.disabled = false;
+    btnArchiveMonth.disabled = false;
+
+    months.forEach(m=>{
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      monthSelect.appendChild(opt);
+    });
+
+    updateMonthSummary();
+  }
+
+  function updateMonthSummary(){
+    const m = monthSelect.value;
+    if (!m){
+      monthSummary.textContent = 'Selecciona un mes.';
+      return;
+    }
+    const records = loadHistory().filter(r => (r.workDate||'').startsWith(m + '-'));
+    monthSummary.textContent = `Mes ${m}: ${records.length} registro(s) listos para archivar.`;
+  }
+
+  monthSelect.addEventListener('change', updateMonthSummary);
+
+  function refreshHistoryUI(){
+    const records = sortHistory(loadHistory());
+    historySelect.innerHTML = '';
+
+    if (!records.length){
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '— Sin registros —';
+      historySelect.appendChild(opt);
+      historySelect.disabled = true;
+    } else {
+      historySelect.disabled = false;
+      records.forEach(r=>{
+        const opt = document.createElement('option');
+        opt.value = r.id;
+        opt.textContent = recordLabel(r);
+        historySelect.appendChild(opt);
+      });
+    }
+
+    historyEditPanel.style.display = 'none';
+    renderHistoryPreview();
+    refreshMonthUI();
+  }
+
+  function getSelectedRecord(){
+    const id = historySelect.value;
+    if (!id) return null;
+    return loadHistory().find(r=>r.id===id) || null;
+  }
+
+  function renderHistoryPreview(){
+    const rec = getSelectedRecord();
+    historyPreview.innerHTML = '';
+
+    if (!rec){
+      historyMeta.textContent = 'Selecciona un registro para ver detalles.';
+      return;
+    }
+
+    const total = rec.items?.length || 0;
+    const visited = (rec.items||[]).filter(i=>i.visited).length;
+    const pending = total - visited;
+
+    const savedAt = rec.savedAt ? new Date(rec.savedAt).toLocaleString('es-ES') : '—';
+    const note = rec.note ? `Nota: ${rec.note}` : '';
+    const title = rec.title ? `Nombre: ${rec.title}` : '';
+
+    historyMeta.textContent =
+      `Trabajo: ${formatES(rec.workDate)} · Guardado: ${savedAt} · ${visited}/${total} visitados (pendientes: ${pending})` +
+      (title ? ` · ${title}` : '') +
+      (note ? ` · ${note}` : '');
+
+    (rec.items || []).forEach((it, idx)=>{
+      const li = document.createElement('li');
+      li.className = 'item';
+
+      const left = document.createElement('div');
+      left.className = 'name';
+      left.innerHTML = `<div>${idx+1}. ${it.visited ? '✓' : '•'} ${it.name}</div>`;
+
+      const mini = document.createElement('div');
+      mini.className = 'mini';
+      mini.textContent = it.visited ? 'Visitado' : 'Pendiente';
+      left.appendChild(mini);
+
+      li.appendChild(left);
+      historyPreview.appendChild(li);
+    });
+  }
+
+  historySelect.addEventListener('change', ()=>{
+    historyEditPanel.style.display = 'none';
+    renderHistoryPreview();
+  });
+
+  function snapshotActiveRoute(workDateStr){
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute] || [];
+    if (!list.length) return null;
+
+    const records = loadHistory();
+    const seq = computeNextSeq(records, workDateStr, currentActiveRoute);
+
+    const rec = {
+      id: uid(),
+      routeName: currentActiveRoute,
+      workDate: workDateStr,
+      savedAt: new Date().toISOString(),
+      seq,
+      title: '',
+      note: '',
+      items: list.map(x=>({name:x.name, visited: !!x.visited}))
+    };
+
+    records.push(rec);
+    saveHistory(records);
+    return rec;
+  }
+
+  function buildTextFromRecord(rec){
+    const dateStr = formatES(rec.workDate);
+    let text = `Ruta ${rec.routeName} – ${dateStr}`;
+    if (rec.seq && rec.seq>1) text += ` (${rec.seq})`;
+    if (rec.title && rec.title.trim()) text += ` · ${rec.title.trim()}`;
+    text += `\n`;
+    (rec.items||[]).forEach((item, idx)=>{
+      const mark = item.visited ? '✓' : '•';
+      text += `${idx+1}. ${mark} ${item.name}\n`;
+    });
+    if (rec.note && rec.note.trim()){
+      text += `\nNota: ${rec.note.trim()}\n`;
+    }
+    return text;
+  }
+
+  btnHistoryView.addEventListener('click', renderHistoryPreview);
+
+  btnHistoryLoad.addEventListener('click', ()=>{
+    const rec = getSelectedRecord();
+    if (!rec) return;
+
+    setActiveRouteName(rec.routeName);
+    activeSelect.value = rec.routeName;
+    updateActiveRouteLabel();
+
+    routeStates[currentActiveRoute] = (rec.items || []).map(i=>({name:i.name, visited: !!i.visited}));
+    saveRouteState(currentActiveRoute);
+
+    editMode = false;
+    btnEdit.textContent = 'Editar';
+    currentFilter = 'all';
+    filterButtons.forEach(b=> b.classList.toggle('active', b.dataset.filter==='all'));
+
+    renderActive();
+    updateGlobalStats();
+    alert('Registro cargado en la ruta activa.');
+  });
+
+  btnHistoryEdit.addEventListener('click', ()=>{
+    const rec = getSelectedRecord();
+    if (!rec) return;
+
+    historyEditDate.value = rec.workDate || getTodayStr();
+    historyEditTitle.value = rec.title || '';
+    historyEditNote.value = rec.note || '';
+    historyEditPanel.style.display = 'block';
+  });
+
+  btnHistoryEditCancel.addEventListener('click', ()=>{
+    historyEditPanel.style.display = 'none';
+  });
+
+  btnHistoryEditSave.addEventListener('click', ()=>{
+    const rec = getSelectedRecord();
+    if (!rec) return;
+
+    const records = loadHistory();
+    const idx = records.findIndex(r=>r.id===rec.id);
+    if (idx<0) return;
+
+    const newDate = historyEditDate.value || rec.workDate;
+    records[idx].workDate = newDate;
+    records[idx].title = (historyEditTitle.value || '').trim();
+    records[idx].note = (historyEditNote.value || '').trim();
+
+    saveHistory(records);
+    historyEditPanel.style.display = 'none';
+
+    refreshHistoryUI();
+    historySelect.value = rec.id;
+    renderHistoryPreview();
+    alert('Registro actualizado.');
+  });
+
+  btnHistoryDelete.addEventListener('click', ()=>{
+    const rec = getSelectedRecord();
+    if (!rec) return;
+    if (!confirm(`¿Eliminar este registro?\n\n${recordLabel(rec)}`)) return;
+
+    const records = loadHistory().filter(r=>r.id!==rec.id);
+    saveHistory(records);
+    refreshHistoryUI();
+  });
+
+  btnHistoryExportText.addEventListener('click', ()=>{
+    const rec = getSelectedRecord();
+    if (!rec) return;
+
+    const text = buildTextFromRecord(rec);
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(()=>{
+        alert('Texto exportado al portapapeles.');
+      }).catch(()=>{
+        alert('No se pudo copiar automáticamente. Este es el texto:\n\n'+text);
+      });
+    } else {
+      alert('Copia este texto:\n\n'+text);
+    }
+  });
+
+  btnHistoryExportJson.addEventListener('click', ()=>{
+    const rec = getSelectedRecord();
+    if (!rec) return;
+
+    const file = `ruta_${rec.workDate}_${keyFor(rec.routeName)}.json`;
+    downloadJSON(file, {type:'route_record', version:1, record:rec});
+  });
+
+  btnHistoryExportAll.addEventListener('click', ()=>{
+    const records = loadHistory();
+    const archives = loadArchives();
+    const file = `rutas_backup_${getTodayStr()}.json`;
+    downloadJSON(file, {
+      type:'routes_backup',
+      version:1,
+      exportedAt:new Date().toISOString(),
+      records,
+      archives
+    });
+  });
+
+  btnHistoryImport.addEventListener('click', ()=>{
+    historyImportFile.value = '';
+    historyImportFile.click();
+  });
+
+  historyImportFile.addEventListener('change', async ()=>{
+    const file = historyImportFile.files?.[0];
+    if (!file) return;
+
+    let json = null;
+    try{
+      const text = await file.text();
+      json = JSON.parse(text);
+    }catch{
+      alert('No pude leer el JSON. ¿Seguro que es un archivo válido?');
+      return;
+    }
+
+    const existingRecords = loadHistory();
+    const existingIds = new Set(existingRecords.map(r=>r.id));
+    const existingArchives = loadArchives();
+    const existingArchiveIds = new Set(existingArchives.map(a=>a.id));
+
+    function safeRecordId(r){
+      let id = r.id || uid();
+      while (existingIds.has(id)) id = uid();
+      existingIds.add(id);
+      return id;
+    }
+
+    function safeArchiveId(a){
+      let id = a.id || uid();
+      while (existingArchiveIds.has(id)) id = uid();
+      existingArchiveIds.add(id);
+      return id;
+    }
+
+    function normalizeRecord(r){
+      return {
+        id: safeRecordId(r),
+        routeName: r.routeName || 'Ruta 1',
+        workDate: r.workDate || getTodayStr(),
+        savedAt: r.savedAt || new Date().toISOString(),
+        seq: Number(r.seq || 1),
+        title: (r.title || '').toString(),
+        note: (r.note || '').toString(),
+        items: Array.isArray(r.items) ? r.items.map(it=>({
+          name: (it.name || '').toString(),
+          visited: !!it.visited
+        })) : []
+      };
+    }
+
+    function normalizeArchive(a){
+      const month = (a.month || '').toString();
+      return {
+        id: safeArchiveId(a),
+        month: /^\d{4}-\d{2}$/.test(month) ? month : (getTodayStr().slice(0,7)),
+        createdAt: a.createdAt || new Date().toISOString(),
+        records: Array.isArray(a.records) ? a.records.map(normalizeRecord) : []
+      };
+    }
+
+    try{
+      if (json && json.type === 'route_record' && json.record){
+        existingRecords.push(normalizeRecord(json.record));
+        saveHistory(existingRecords);
+        alert('Registro importado.');
+      } else if (json && json.type === 'archive_month' && json.archive){
+        existingArchives.push(normalizeArchive(json.archive));
+        saveArchives(existingArchives);
+        alert('Archivo mensual importado.');
+      } else if (json && json.type === 'routes_backup'){
+        const recs = Array.isArray(json.records) ? json.records : [];
+        const arcs = Array.isArray(json.archives) ? json.archives : [];
+        recs.forEach(r => existingRecords.push(normalizeRecord(r)));
+        arcs.forEach(a => existingArchives.push(normalizeArchive(a)));
+        saveHistory(existingRecords);
+        saveArchives(existingArchives);
+        alert('Backup importado.');
+      } else if (Array.isArray(json)) {
+        // por si alguien exportó solo array de records
+        json.forEach(r => existingRecords.push(normalizeRecord(r)));
+        saveHistory(existingRecords);
+        alert('Importación completada (lista).');
+      } else {
+        alert('JSON reconocido, pero no es un formato soportado.');
+      }
+    }catch(e){
+      alert('Error importando JSON.');
+    }
+
+    refreshHistoryUI();
+  });
+
+  btnArchiveMonth.addEventListener('click', ()=>{
+    const month = monthSelect.value;
+    if (!month) return;
+
+    const all = loadHistory();
+    const toArchive = all.filter(r => (r.workDate||'').startsWith(month + '-'));
+    if (!toArchive.length){
+      alert('No hay registros para ese mes.');
+      return;
+    }
+
+    if (!confirm(`Vas a archivar ${toArchive.length} registro(s) del mes ${month}.\n\nSe descargará un JSON y luego se limpiarán del historial diario.\n\n¿Continuar?`)){
+      return;
+    }
+
+    const archive = {
+      id: uid(),
+      month,
+      createdAt: new Date().toISOString(),
+      records: toArchive
+    };
+
+    // guardamos en "archivos mensuales"
+    const archives = loadArchives();
+    archives.push(archive);
+    saveArchives(archives);
+
+    // limpiamos del historial diario
+    const remaining = all.filter(r => !(r.workDate||'').startsWith(month + '-'));
+    saveHistory(remaining);
+
+    // descargamos el archivo mensual
+    downloadJSON(`rutas_${month}.json`, {type:'archive_month', version:1, archive});
+
+    refreshHistoryUI();
+    alert(`Archivado listo. Ahora solo te falta subir el archivo a Drive (arrastrar/soltar y a vivir).`);
+  });
+
   // ======= EVENTOS UI =======
   btnSetActive.addEventListener('click', ()=>{
     setActiveRouteName(activeSelect.value);
@@ -895,8 +1470,19 @@
     if (e.key==='Enter') btnManualAdd.click();
   });
 
+  // RESET: guarda automático (si hay clientes) SOLO si confirmas el reset.
   btnReset.addEventListener('click', ()=>{
-    if (!confirm('Esto restaurará la lista de la ruta activa a su estado original y limpiará los checks. ¿Seguro?')) return;
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute] || [];
+
+    if (!confirm('Esto reseteará la ruta activa a su estado original y limpiará los checks.\n\nAntes de resetear se guardará un registro automático (si hay clientes).\n\n¿Seguro?')) return;
+
+    // Guardado automático con fecha real (hoy). Editable luego en Historial.
+    if (list.length){
+      snapshotActiveRoute(getTodayStr());
+      refreshHistoryUI();
+    }
+
     routeStates[currentActiveRoute] = baseRoutes[currentActiveRoute].map(n=>({name:n, visited:false}));
     saveRouteState(currentActiveRoute);
     renderActive();
@@ -949,7 +1535,7 @@
     currentDate = dateSelect.value || getTodayStr();
     localStorage.setItem('currentDate', currentDate);
     // Solo actualizamos texto que usa la fecha (copiar ruta),
-    // la faena del día se mantiene tal cual.
+    // el estado de la faena se mantiene tal cual.
   });
 
   searchInput.addEventListener('input', renderSearchResults);
@@ -968,6 +1554,7 @@
   renderActive();
   renderBrowse();
   updateGlobalStats();
+  refreshHistoryUI();
   </script>
 </body>
 </html>
