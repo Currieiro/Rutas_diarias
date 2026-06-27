@@ -1,331 +1,27 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Gestor de Rutas — Activa del día</title>
-  <style>
-    :root{
-      --bg:#5C4033; /* marrón */
-      --accent:#FFA500; /* naranja */
-      --text:#fff; /* blanco */
-      --muted:#cfcfcf;
-      --line:#3f2e26;
-      --danger:#ff5a5a;
-      --note:#ffd37a;
-      --note-bg:rgba(255,165,0,0.16);
-    }
+from pathlib import Path
 
-    html,body{
-      margin:0;
-      height:100%;
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-    }
+src = Path("/mnt/data/Pegado text.txt")
+out = Path("/mnt/data/gestor_rutas_v4.4.0_corregido.html")
+text = src.read_text(encoding="utf-8")
 
-    .wrap{
-      max-width:840px;
-      margin:0 auto;
-      padding:10px 12px 80px;
-    }
+# Versión
+text = text.replace('v 4.3.4', 'v 4.4.0', 1)
 
-    h1{
-      font-size:1.15rem;
-      margin:8px 0 6px;
-      text-align:center;
-    }
+# Cambiar el texto superior: la fecha es una propuesta, no controla ni borra la ruta.
+text = text.replace(
+"""    <p class="date-line">
+      Día de trabajo:
+      <input type="date" id="date-select">
+    </p>""",
+"""    <p class="date-line">
+      Fecha propuesta de la ruta:
+      <input type="date" id="date-select">
+    </p>""",
+1
+)
 
-    .version{
-      font-size:.8rem;
-      opacity:.8;
-    }
-
-    .date-line{
-      font-size:.85rem;
-      text-align:center;
-      color:var(--muted);
-      margin:0 0 8px;
-    }
-
-    .date-line input[type="date"]{
-      max-width:160px;
-      padding:4px 8px;
-      font-size:.9rem;
-      margin-left:6px;
-      border-radius:8px;
-      background:transparent;
-      color:var(--text);
-      border:1px solid var(--accent);
-    }
-
-    .date-line input[type="date"]:focus{
-      outline:2px solid var(--accent);
-      outline-offset:2px;
-    }
-
-    /* tarjetas */
-    .card{
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:10px 12px;
-      margin:10px 0;
-      background:rgba(255,255,255,0.03);
-      backdrop-filter:saturate(120%) blur(0.5px);
-    }
-
-    .card h2{
-      font-size:1rem;
-      margin:0 0 8px;
-      display:flex;
-      align-items:center;
-      gap:.5rem;
-      flex-wrap:wrap;
-    }
-
-    .tag{
-      font-size:.75rem;
-      padding:2px 8px;
-      border-radius:999px;
-      background:var(--accent);
-      color:#000;
-      font-weight:700;
-    }
-
-    /* selects / inputs */
-    select,
-    input[type="text"],
-    input[type="time"],
-    textarea{
-      width:100%;
-      box-sizing:border-box;
-      background:transparent;
-      color:var(--text);
-      border:1px solid var(--accent);
-      border-radius:10px;
-      padding:10px 12px;
-      font-size:1rem;
-      font-family:inherit;
-    }
-
-    textarea{
-      min-height:58px;
-      max-height:110px;
-      resize:vertical;
-      line-height:1.25;
-    }
-
-    select:focus,
-    input:focus,
-    textarea:focus{
-      outline:2px solid var(--accent);
-      outline-offset:2px;
-    }
-
-    input[type="date"]{
-      background:transparent;
-      color:var(--text);
-      border:1px solid var(--accent);
-      border-radius:10px;
-      padding:10px 12px;
-      font-size:1rem;
-      box-sizing:border-box;
-      width:100%;
-    }
-
-    input[type="date"]:focus{
-      outline:2px solid var(--accent);
-      outline-offset:2px;
-    }
-
-    .row{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-
-    .row > *{flex:1}
-    .row .shrink{flex:0}
-
-    .btn{
-      appearance:none;
-      border:none;
-      background:var(--accent);
-      color:#000;
-      font-weight:700;
-      border-radius:999px;
-      padding:10px 16px;
-      cursor:pointer;
-      font-size:.9rem;
-      min-height:40px;
-    }
-
-    .btn.ghost{
-      background:transparent;
-      color:var(--accent);
-      border:1px solid var(--accent);
-    }
-
-    .btn.danger{
-      background:var(--danger);
-      color:#000;
-    }
-
-    .btn:focus-visible{
-      outline:2px solid #fff;
-      outline-offset:2px;
-    }
-
-    .btn[disabled]{
-      opacity:.5;
-      cursor:default;
-    }
-
-    /* filtros */
-    .filter-btn{
-      font-size:.8rem;
-      padding:6px 10px;
-      min-height:32px;
-    }
-
-    .filter-btn.active{
-      background:var(--accent);
-      color:#000;
-    }
-
-    /* listas */
-    .list{
-      list-style:none;
-      margin:8px 0 0;
-      padding:0;
-    }
-
-    .item{
-      position:relative;
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-      border-bottom:1px dashed var(--line);
-      padding:12px 2px;
-      border-radius:10px;
-    }
-
-    .item:last-child{border-bottom:none}
-
-    .visited .name{
-      text-decoration:line-through;
-      color:var(--muted);
-    }
-
-    .item.has-notes{
-      background:var(--note-bg);
-      border-left:4px solid var(--note);
-      padding-left:8px;
-    }
-
-    .check{
-      transform:scale(1.4);
-      margin-top:12px;
-    }
-
-    .name{
-      flex:1;
-      word-break:break-word;
-    }
-
-    .visit-main{
-      flex:1;
-      min-width:0;
-    }
-
-    .visit-head{
-      display:flex;
-      gap:8px;
-      align-items:flex-start;
-      justify-content:space-between;
-      flex-wrap:wrap;
-    }
-
-    .visit-tools{
-      display:flex;
-      gap:6px;
-      align-items:center;
-      justify-content:flex-end;
-      flex-wrap:wrap;
-      margin-left:auto;
-    }
-
-    .note-badge{
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
-      padding:3px 8px;
-      border-radius:999px;
-      background:var(--note);
-      color:#000;
-      font-size:.72rem;
-      font-weight:800;
-      white-space:nowrap;
-    }
-
-    .time-wrap{
-      display:inline-flex;
-      align-items:center;
-      gap:5px;
-      color:var(--muted);
-      font-size:.75rem;
-      white-space:nowrap;
-    }
-
-    .visit-time{
-      width:88px !important;
-      padding:4px 6px !important;
-      font-size:.85rem !important;
-      border-radius:8px !important;
-      color:var(--text);
-    }
-
-    .obs-details{
-      margin-top:7px;
-    }
-
-    .obs-details summary{
-      cursor:pointer;
-      color:var(--accent);
-      font-size:.82rem;
-      font-weight:700;
-      user-select:none;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-    }
-
-    .obs-details summary::-webkit-details-marker{
-      display:none;
-    }
-
-    .obs-details summary::before{
-      content:'▸';
-      display:inline-block;
-      transition:transform .15s ease;
-    }
-
-    .obs-details[open] summary::before{
-      transform:rotate(90deg);
-    }
-
-    .obs-panel{
-      margin-top:7px;
-    }
-
-    .obs-help{
-      margin:4px 0 0;
-      color:var(--muted);
-      font-size:.72rem;
-    }
-
-    .obs-display{
+# CSS para botón check y ventana de cierre de ruta
+css_anchor = """    .obs-display{
       margin-top:5px;
       padding:7px 9px;
       border-radius:8px;
@@ -336,599 +32,231 @@
     }
 
     .handle{
-      touch-action:none;
-      user-select:none;
-      margin-top:3px;
+"""
+css_insert = """    .obs-display{
+      margin-top:5px;
+      padding:7px 9px;
+      border-radius:8px;
+      background:rgba(255,255,255,0.06);
+      color:var(--note);
+      font-size:.82rem;
+      white-space:pre-wrap;
     }
 
-    .handle::after{
-      content:"≡";
-      font-size:20px;
-      opacity:.9;
-    }
-
-    /* número de visita */
-    .num{
-      width: 2.2em;
-      font-size: .8rem;
-      opacity: .8;
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-      margin-top:10px;
-    }
-
-    /* modo edición: aparece el botón eliminar elegante */
-    .item .del{display:none}
-    .edit-mode .item .del{display:inline-flex}
-
-    .del{
-      align-items:center;
-      justify-content:center;
-      width:28px;
-      height:28px;
-      border-radius:999px;
-      background:transparent;
-      border:1px solid var(--danger);
-      color:var(--danger);
-      cursor:pointer;
-      margin-top:6px;
-    }
-
-    .del:focus-visible{
-      outline:2px solid var(--danger);
-      outline-offset:2px;
-    }
-
-    /* barra inferior para añadir seleccionados */
-    .bar{
-      position:fixed;
-      left:0;
-      right:0;
-      bottom:0;
-      background:rgba(0,0,0,.45);
-      backdrop-filter:blur(6px);
-      border-top:1px solid var(--line);
-      padding:10px 12px;
-      display:none;
-    }
-
-    .bar.show{display:block}
-    .bar .btn{width:100%}
-
-    /* chips */
-    .chips{
+    .panel-actions{
       display:flex;
-      flex-wrap:wrap;
-      gap:6px;
+      justify-content:flex-end;
       margin-top:8px;
     }
 
-    .chip{
-      font-size:.75rem;
-      border:1px solid var(--accent);
-      color:var(--accent);
-      padding:4px 8px;
+    .panel-check{
+      width:40px;
+      height:40px;
+      min-height:40px;
+      padding:0;
       border-radius:999px;
-      cursor:pointer;
-      background:transparent;
+      font-size:1.2rem;
+      line-height:1;
     }
 
-    .chip:hover{
-      background:rgba(255,165,0,0.12);
+    .finish-overlay{
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:rgba(0,0,0,.7);
+      backdrop-filter:blur(5px);
     }
 
-    .chip:focus-visible{
-      outline:2px solid var(--accent);
-      outline-offset:2px;
+    .finish-overlay.show{
+      display:flex;
     }
 
-    /* arrastrando */
-    .dragging{
-      z-index:2;
-      box-shadow:0 8px 20px rgba(0,0,0,.35);
+    .finish-box{
+      width:min(420px, 100%);
+      border:1px solid var(--accent);
+      border-radius:16px;
+      padding:16px;
       background:var(--bg);
+      box-shadow:0 18px 50px rgba(0,0,0,.5);
     }
 
-    .placeholder{
-      height:52px;
-      border:2px dashed var(--accent);
-      border-radius:10px;
-      margin:6px 0;
+    .finish-box h2{
+      margin:0 0 8px;
+      font-size:1.05rem;
     }
 
-    /* textos resumen */
-    .summary{
-      margin:6px 2px 0;
-      font-size:.8rem;
+    .finish-box p{
+      margin:0 0 12px;
       color:var(--muted);
+      font-size:.85rem;
+      line-height:1.35;
     }
 
-    /* historial preview */
-    #history-preview .item{
-      padding:10px 2px;
-    }
-    #history-preview .mini{
-      font-size:.8rem;
+    .finish-date-label{
+      display:block;
       color:var(--muted);
+      font-size:.82rem;
     }
 
-    @media (max-width:520px){
-      .visit-head{
-        display:block;
-      }
-      .visit-tools{
-        justify-content:flex-start;
-        margin-top:6px;
-        margin-left:0;
-      }
-      .handle{
-        padding:8px 10px;
-      }
+    .finish-date-label input{
+      margin-top:5px;
     }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <h1>Gestor de Rutas <span class="version">v 4.3.4</span> · <span class="tag">Activa del día</span></h1>
-    <p class="date-line">
-      Día de trabajo:
-      <input type="date" id="date-select">
-    </p>
 
-    <!-- RUTA ACTIVA DEL DÍA -->
-    <section class="card" id="card-active">
-      <h2>
-        Ruta activa del día
-        <span id="active-route-label" class="tag"></span>
-      </h2>
+    .finish-actions{
+      display:flex;
+      gap:8px;
+      justify-content:flex-end;
+      margin-top:14px;
+    }
 
-      <div class="row" id="filter-row" style="margin:4px 0 4px">
-        <button class="btn ghost filter-btn" data-filter="all" type="button">Todos</button>
-        <button class="btn ghost filter-btn" data-filter="pending" type="button">Pendientes</button>
-        <button class="btn ghost filter-btn" data-filter="visited" type="button">Visitados</button>
+    .finish-actions .btn{
+      flex:0 0 auto;
+    }
+
+    .finish-check{
+      width:46px;
+      height:46px;
+      min-height:46px;
+      padding:0;
+      font-size:1.35rem;
+    }
+
+    .handle{
+"""
+if css_anchor not in text:
+    raise RuntimeError("No se encontró el anclaje CSS.")
+text = text.replace(css_anchor, css_insert, 1)
+
+# Añadir ventana de confirmación antes de cerrar body
+modal_html = """
+  <div class="finish-overlay" id="finish-overlay" role="dialog" aria-modal="true" aria-labelledby="finish-title">
+    <div class="finish-box">
+      <h2 id="finish-title">Finalizar y resetear ruta</h2>
+      <p>
+        Confirma la fecha real de esta ruta. Se guardarán las visitas, horas y observaciones
+        antes de dejar la ruta limpia.
+      </p>
+
+      <label class="finish-date-label">
+        Fecha de la ruta
+        <input id="finish-date" type="date" />
+      </label>
+
+      <div class="finish-actions">
+        <button id="btn-finish-cancel" class="btn ghost" type="button">Cancelar</button>
+        <button id="btn-finish-confirm" class="btn finish-check" type="button"
+                title="Guardar y resetear" aria-label="Guardar y resetear">✓</button>
       </div>
-
-      <div class="row" style="margin-bottom:8px">
-        <select id="active-select" aria-label="Elegir ruta activa del día"></select>
-        <button id="btn-set-active" class="btn shrink" title="Establecer como activa" type="button">Fijar</button>
-        <button id="btn-edit" class="btn ghost shrink" title="Alternar edición" type="button">Editar</button>
-      </div>
-
-      <ul id="active-list" class="list"></ul>
-      <p id="active-summary" class="summary"></p>
-
-      <div class="row" style="margin-top:10px">
-        <input id="manual-add" type="text" list="all-clients" placeholder="Añadir cliente manualmente o desde sugerencias…" />
-        <button id="btn-manual-add" class="btn shrink" type="button">Añadir</button>
-      </div>
-      <datalist id="all-clients"></datalist>
-
-      <div class="chips" id="hints"></div>
-
-      <div class="row" style="margin-top:10px">
-        <button id="btn-reset" class="btn danger" type="button">Resetear día</button>
-        <button id="btn-copy" class="btn ghost" type="button">Copiar ruta</button>
-      </div>
-      <div class="row" style="margin-top:6px">
-        <button id="btn-mark-all" class="btn ghost" type="button">Marcar todos visitados</button>
-        <button id="btn-clear-checks" class="btn ghost" type="button">Limpiar checks</button>
-      </div>
-    </section>
-
-    <!-- BUSCAR CLIENTE -->
-    <section class="card" id="card-search">
-      <h2>Buscar cliente</h2>
-      <div class="row" style="margin-bottom:8px">
-        <input id="search-input" type="text" placeholder="Buscar cliente en todas las rutas…" />
-      </div>
-      <ul id="search-results" class="list"></ul>
-    </section>
-
-    <!-- EXPLORAR OTRAS RUTAS -->
-    <section class="card">
-      <h2>Explorar otras rutas</h2>
-      <div class="row" style="margin-bottom:8px">
-        <select id="browse-select" aria-label="Explorar rutas"></select>
-        <button id="btn-add-selected" class="btn shrink" title="Añadir seleccionados a la activa" disabled type="button">+ a Activa</button>
-      </div>
-      <ul id="browse-list" class="list"></ul>
-    </section>
-
-    <!-- RESUMEN DEL DÍA -->
-    <section class="card" id="card-stats">
-      <h2>Resumen del día</h2>
-      <p id="stats-text" class="summary"></p>
-    </section>
-
-    <!-- HISTORIAL -->
-    <section class="card" id="card-history">
-      <h2>Historial</h2>
-
-      <div class="row" style="margin-bottom:8px">
-        <select id="history-select" aria-label="Registros guardados"></select>
-        <button id="btn-history-view" class="btn ghost shrink" type="button">Ver</button>
-        <button id="btn-history-load" class="btn shrink" type="button">Cargar</button>
-      </div>
-
-      <div class="row" style="margin-bottom:8px">
-        <button id="btn-history-edit" class="btn ghost shrink" type="button">Editar</button>
-        <button id="btn-history-delete" class="btn danger shrink" type="button">Eliminar</button>
-        <button id="btn-history-export-text" class="btn ghost" type="button">Exportar texto</button>
-        <button id="btn-history-export-json" class="btn ghost" type="button">Exportar JSON</button>
-      </div>
-
-      <div class="row" style="margin-bottom:8px">
-        <button id="btn-history-export-all" class="btn ghost" type="button">Exportar TODO (JSON)</button>
-        <button id="btn-history-import" class="btn ghost" type="button">Importar (JSON)</button>
-        <input id="history-import-file" type="file" accept="application/json" style="display:none" />
-      </div>
-
-      <div id="history-edit-panel" class="card" style="display:none; margin-top:8px">
-        <h2 style="margin-bottom:6px">Editar registro</h2>
-        <div class="row" style="margin-bottom:8px">
-          <label style="flex:1; font-size:.85rem; color:var(--muted)">
-            Fecha de trabajo
-            <input id="history-edit-date" type="date" />
-          </label>
-          <label style="flex:2; font-size:.85rem; color:var(--muted)">
-            Nombre (opcional)
-            <input id="history-edit-title" type="text" placeholder="Ej: Viernes tarde / urgentes / etc." />
-          </label>
-        </div>
-        <label style="display:block; font-size:.85rem; color:var(--muted); margin-bottom:8px">
-          Nota general del registro (opcional)
-          <input id="history-edit-note" type="text" placeholder="Ej: devoluciones, cobros, incidencias…" />
-        </label>
-
-        <div class="row">
-          <button id="btn-history-edit-save" class="btn" type="button">Guardar</button>
-          <button id="btn-history-edit-cancel" class="btn ghost" type="button">Cancelar</button>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:10px">
-        <h2>Archivo mensual</h2>
-        <div class="row" style="margin-bottom:8px">
-          <select id="month-select" aria-label="Mes a archivar"></select>
-          <button id="btn-archive-month" class="btn shrink" type="button">Archivar + Descargar + Limpiar</button>
-        </div>
-        <p class="summary" id="month-summary"></p>
-      </div>
-
-      <ul id="history-preview" class="list"></ul>
-      <p id="history-meta" class="summary"></p>
-    </section>
+    </div>
   </div>
+"""
+text = text.replace("  <script>\n", modal_html + "\n  <script>\n", 1)
 
-  <div class="bar" id="add-bar">
-    <button id="btn-add-bar" class="btn" type="button">Añadir 0 seleccionados a la activa</button>
-  </div>
-
-  <script>
-  // ======= DATOS BASE =======
-  const baseRoutes = {
-    "Ruta 1": [
-      "EL PEDREGAL", "MANDUCA NUEVO", "BAR BUC", "TOC HOSTAL GRAN VIA",
-      "BAR RESTAURANTE LA POMA" , "TIENDA RONDA SANT ANTONI", "BAR CAFETERIA MARIANA",
-      "OMBU,RTE", "PESSEBRE", "BOEDO", "CUATRECASAS", "RESTAURANTE ZHU ZHU", "PLEASE PLATS"
-    ],
-    "Ruta 2": [
-      "TRES TORRES", "PETIT RACÓ", "DOMUSVI BONANOVA", "SANT GERVASI", "DURO", "SANT FRANCESC", "MAR PERUVIAN", "MONREAL",
-      "CAL PEP", "LA ROVIRA", "FLANDERS", "CIURI´S", "SINGLOT", "BRASAS", "KOKCHA",
-      "RTE. JAPONES H83", "ESTRELLA GALICIA", "LURI", "MEET THAI", "DA ANTONIO",
-      "CAFE ILUSIONA BY MUXIA", "RIAS DE GALICIA RTE", "CASA DE TAPAS A CAÑOTA", "CLUB DE TIRO MONTJUIC", "LAS CATIVAS"
-    ],
-    "Ruta 3": [
-      "TIENDA LES CORTS", "MANDONI PEDRALBES", "EL MOLI PAN Y CAFE SANTS", "MOLÍ I PAN RAMBLA CATALUNYA", "FORN VELL INDUSTRIA", "SICILIA", "FORN VELL CLARET",
-      "ARTESANO", "SEGRE", "SOLANA", "CASA ANGEL", "BAR EUROPA",  "CAFETERÍA PIPA'S", "THAI BARCELONA", "SIAM BRUNCH AND DRINKS", "CAFÉ Y TÉ RAMBLA CATALUNYA", "LESTONAC", "MARIMBA", "KAYI"
-    ],
-    "Ruta 4": [
-      "TIENDA CONSELL DE CENT", "EL PEDREGAL", "EL NACIONAL", "SMILE", "ORDAL", "YIMA", "TIENDA CLOT", "LA RUTA GALLEGA", "BAR CAÑAS", "RINCÓN GALLEGO MERIDIANA",
-      "TIENDA MERIDIANA II", "RINCON GALEGO", "TIENDA JOAQUIM VALLS", "FRANKFURT TOLIK", "MIRASOL", "JURNET", "AQUÍ ME QUEDO", "LUCENA", "DEPAS", "CENTRE CIVIC SANT MARTÍ",
-      "RTE. DAZHONG", "CANTONES", "FURACU", "MI RINCÓN", "EL MIRALL DELS ENCANTS"
-    ],
-    "Ruta 5": [
-      "TIENDA TORRAS I BAGES", "VALDAURA", "TIENDA VIA JULIA", "TIENDA TALLER VALLDAURA", "AMPARITO", "CENTRO ASTURIANO"
-    ],
-    "Clientes que llaman": [
-      "RTE PIPA", "100 MONTADITOS", "LA PERLA", "SURKANA", "O BURATO BAR", "A PROP TEU", "DAMAIA",
-      "TEATRO NACIONAL DE CATALUNYA", "ATABALATS GASTROBAR", "TASTY POKE",
-      "ESTACIÓN DE SERVICIO PARALELO", "SMASH HIRO", "EVENTOS MUXIA", "BESTA",
-      "HOTEL ZENIT", "ALTIMA RONDA DE DALT", "HELADERÍA ADRI",
-      "GULA SANA", "PIERRE VACANCES OFICINAS", "PIERRE VACANCES SANTS", "RESTAURANT CENT FOCS",
-      "BAR RTE LEPANTO", "DELEGACIÓN", 
-      "HOTEL SB GLOW", "HOTEL SB ICARIA BARCELONA", 
-      "LA FILOMENA BAR", "EUROSTARS ANGLI", "HOTEL BARCELONA CENTRAL",
-      "EXE LAIETANA PALACE", "EUROSTARS CRISTAL PALACE", 
-      "DORMA PLAZA CATALUNYA", "EUROSTARS MONUMENTAL", 
-      "EUROSTARS MITRE", "RESTAURANTE LA GORMANDA", "ADELITA RESTAURANTE",
-      "LOKAL", "BATEA", "TSUKIMI", "LA PALMERA", "LOMO ALTO", "HOTEL ARENAS",
-      "HOTEL TRES TORRES", "LA BRASA RESTAURANTE", "RTE ANCARES",
-      "RTE MAMETORA", "R.U. COSMOPOLITAN", "ESCUELA JUDICIAL BCN", "GREENVITA NUMANCIA",
-      "EL RACONET D'URGELL", "CHALITO BCN.", "CHALITO CASANOVAS", "FRANKFURT SANTS",
-      "R.U. EMILIE DE VILLENUEVE",
-      "FUNDACIO ASPACE CATALUNYA", "SANED THAU"
-    ]
-  };
-
-  const routeNames = ["Ruta 1","Ruta 2","Ruta 3","Ruta 4","Ruta 5","Clientes que llaman"];
-  const keyFor = (route) => route.toLowerCase().split(' ').join('_').replaceAll('ñ','n');
-
-  const $ = (s,root=document)=>root.querySelector(s);
-  const $$ = (s,root=document)=>[...root.querySelectorAll(s)];
-
-  const activeSelect = $('#active-select');
-  const browseSelect = $('#browse-select');
-  const activeListEl = $('#active-list');
-  const browseListEl = $('#browse-list');
-  const btnSetActive = $('#btn-set-active');
-  const btnEdit = $('#btn-edit');
-  const btnReset = $('#btn-reset');
-  const btnCopy = $('#btn-copy');
-  const btnMarkAll = $('#btn-mark-all');
-  const btnClearChecks = $('#btn-clear-checks');
-  const inputManual = $('#manual-add');
-  const btnManualAdd = $('#btn-manual-add');
-  const allClientsDL = $('#all-clients');
-  const hints = $('#hints');
-  const addBar = $('#add-bar');
-  const btnAddSelected = $('#btn-add-selected');
-  const btnAddBar = $('#btn-add-bar');
-  const dateSelect = $('#date-select');
-  const activeRouteLabel = $('#active-route-label');
-  const activeSummary = $('#active-summary');
-  const statsText = $('#stats-text');
-  const searchInput = $('#search-input');
-  const searchResults = $('#search-results');
-  const filterButtons = $$('.filter-btn');
+# Elementos JS del modal
+anchor_elements = """  const filterButtons = $$('.filter-btn');
 
   // ======= HISTORIAL: ELEMENTOS UI =======
-  const historySelect = $('#history-select');
-  const btnHistoryView = $('#btn-history-view');
-  const btnHistoryLoad = $('#btn-history-load');
-  const btnHistoryEdit = $('#btn-history-edit');
-  const btnHistoryDelete = $('#btn-history-delete');
-  const btnHistoryExportText = $('#btn-history-export-text');
-  const btnHistoryExportJson = $('#btn-history-export-json');
-  const btnHistoryExportAll = $('#btn-history-export-all');
-  const btnHistoryImport = $('#btn-history-import');
-  const historyImportFile = $('#history-import-file');
-  const historyPreview = $('#history-preview');
-  const historyMeta = $('#history-meta');
+"""
+insert_elements = """  const filterButtons = $$('.filter-btn');
 
-  const historyEditPanel = $('#history-edit-panel');
-  const historyEditDate = $('#history-edit-date');
-  const historyEditTitle = $('#history-edit-title');
-  const historyEditNote = $('#history-edit-note');
-  const btnHistoryEditSave = $('#btn-history-edit-save');
-  const btnHistoryEditCancel = $('#btn-history-edit-cancel');
+  const finishOverlay = $('#finish-overlay');
+  const finishDate = $('#finish-date');
+  const btnFinishCancel = $('#btn-finish-cancel');
+  const btnFinishConfirm = $('#btn-finish-confirm');
 
-  const monthSelect = $('#month-select');
-  const btnArchiveMonth = $('#btn-archive-month');
-  const monthSummary = $('#month-summary');
+  // ======= HISTORIAL: ELEMENTOS UI =======
+"""
+if anchor_elements not in text:
+    raise RuntimeError("No se encontró el anclaje de elementos JS.")
+text = text.replace(anchor_elements, insert_elements, 1)
 
-  // ======= UTILIDADES =======
-  function getTodayStr(){
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const day = String(d.getDate()).padStart(2,'0');
-    return `${y}-${m}-${day}`;
-  }
-
-  function getNowTimeStr(){
-    const d = new Date();
-    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  }
-
-  function formatES(dateStr){
-    try{
-      const [y,m,d] = dateStr.split('-');
-      const dt = new Date(Number(y), Number(m)-1, Number(d));
-      return dt.toLocaleDateString('es-ES');
-    }catch{
-      return dateStr;
-    }
-  }
-
-  function uid(){
-    return 'h_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
-  }
-
-  function normalizeItem(item){
-    if (typeof item === 'string'){
-      return {name:item, visited:false, visitedAt:'', observations:''};
-    }
-    return {
-      name: (item?.name || '').toString(),
-      visited: !!item?.visited,
-      visitedAt: (item?.visitedAt || item?.time || '').toString().slice(0,5),
-      observations: (item?.observations || item?.obs || item?.note || '').toString()
-    };
-  }
-
-  function hasObservations(item){
-    return !!(item && item.observations && item.observations.trim());
-  }
-
-  function escapeHtml(str){
-    return (str || '').toString()
-      .replaceAll('&','&amp;')
-      .replaceAll('<','&lt;')
-      .replaceAll('>','&gt;')
-      .replaceAll('"','&quot;')
-      .replaceAll("'",'&#039;');
-  }
-
-  function downloadJSON(filename, obj){
-    const blob = new Blob([JSON.stringify(obj, null, 2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  // ======= ESTADO APP =======
-  let currentDate = localStorage.getItem('currentDate') || getTodayStr();
+# Estado de fecha: hoy por defecto, sin depender de una fecha guardada global
+old_state = """  let currentDate = localStorage.getItem('currentDate') || getTodayStr();
   dateSelect.value = currentDate;
 
   let currentActiveRoute = localStorage.getItem('activeRouteName') || 'Ruta 1';
-  let routeStates = {}; // { routeName: [{name, visited, visitedAt, observations}], ... }
-  let editMode = false;
-  let currentFilter = 'all';
+"""
+new_state = """  let currentDate = getTodayStr();
+  dateSelect.value = currentDate;
 
-  function storageKey(route){
+  let currentActiveRoute = localStorage.getItem('activeRouteName') || 'Ruta 1';
+"""
+if old_state not in text:
+    raise RuntimeError("No se encontró el estado de fecha.")
+text = text.replace(old_state, new_state, 1)
+
+# Funciones de fecha por ruta, independientes del contenido
+anchor_storage = """  function storageKey(route){
     // Persistencia por ruta, independiente de la fecha
     return 'state_'+keyFor(route);
   }
 
   function ensureState(route){
-    if (routeStates[route]) return;
-    let list = null;
+"""
+insert_storage = """  function storageKey(route){
+    // Persistencia por ruta, independiente de la fecha
+    return 'state_'+keyFor(route);
+  }
 
-    const stored = localStorage.getItem(storageKey(route));
-    if (stored){
-      try{ list = JSON.parse(stored); }catch{ list = null; }
-    }
+  function routeWorkDateKey(route){
+    return 'work_date_'+keyFor(route);
+  }
 
-    if (!Array.isArray(list)){
-      list = baseRoutes[route].map(n=>normalizeItem(n));
+  function getRouteWorkDate(route){
+    return localStorage.getItem(routeWorkDateKey(route)) || '';
+  }
+
+  function setRouteWorkDate(route, dateStr){
+    if (dateStr){
+      localStorage.setItem(routeWorkDateKey(route), dateStr);
     } else {
-      list = list.map(normalizeItem).filter(i=>i.name);
+      localStorage.removeItem(routeWorkDateKey(route));
     }
-
-    routeStates[route] = list;
-    saveRouteState(route); // migra registros antiguos al nuevo formato
   }
 
-  function saveRouteState(route){
-    localStorage.setItem(storageKey(route), JSON.stringify((routeStates[route] || []).map(normalizeItem)));
-  }
-
-  function setActiveRouteName(name){
-    currentActiveRoute = name;
-    localStorage.setItem('activeRouteName', name);
-  }
-
-  function updateActiveRouteLabel(){
-    activeRouteLabel.textContent = currentActiveRoute;
-  }
-
-  function updateActiveSummary(){
+  function refreshRouteDate(){
     ensureState(currentActiveRoute);
     const list = routeStates[currentActiveRoute] || [];
-    const total = list.length;
-    const visited = list.filter(i=>i.visited).length;
-    const pending = total - visited;
-    const withObs = list.filter(hasObservations).length;
+    const hasVisited = list.some(item=>item.visited);
+    const storedDate = getRouteWorkDate(currentActiveRoute);
 
-    if (!total){
-      activeSummary.textContent = 'No hay clientes en la ruta activa.';
-    } else {
-      activeSummary.textContent = `Ruta ${currentActiveRoute}: ${visited} de ${total} visitados (pendientes: ${pending}) · con observaciones: ${withObs}`;
+    // Si aún no se ha visitado ningún cliente, la propuesta siempre es hoy.
+    // Así puedes preparar la ruta el día anterior sin que quede fechada ese día.
+    currentDate = (hasVisited && storedDate) ? storedDate : getTodayStr();
+    dateSelect.value = currentDate;
+  }
+
+  function ensureRouteDateFromFirstVisit(){
+    const storedDate = getRouteWorkDate(currentActiveRoute);
+    if (!storedDate){
+      const today = getTodayStr();
+      setRouteWorkDate(currentActiveRoute, today);
+      currentDate = today;
+      dateSelect.value = today;
     }
   }
 
-  function updateGlobalStats(){
-    let total = 0;
-    let visited = 0;
-    let withObs = 0;
-    routeNames.forEach(r=>{
-      ensureState(r);
-      const list = routeStates[r] || [];
-      total += list.length;
-      visited += list.filter(i=>i.visited).length;
-      withObs += list.filter(hasObservations).length;
-    });
-    const pending = total - visited;
-    if (!total){
-      statsText.textContent = 'No hay datos.';
-    } else {
-      statsText.textContent = `Clientes en todas las rutas (estado actual): ${visited} visitados de ${total} (pendientes: ${pending}) · con observaciones: ${withObs}`;
+  function clearRouteDateIfNoVisits(){
+    const list = routeStates[currentActiveRoute] || [];
+    if (!list.some(item=>item.visited)){
+      setRouteWorkDate(currentActiveRoute, '');
+      currentDate = getTodayStr();
+      dateSelect.value = currentDate;
     }
   }
 
-  // ======= SELECTS Y DATALIST =======
-  function fillSelect(sel){
-    sel.innerHTML = '';
-    for (const r of routeNames){
-      const opt = document.createElement('option');
-      opt.value = r;
-      opt.textContent = r;
-      sel.appendChild(opt);
-    }
-  }
+  function ensureState(route){
+"""
+if anchor_storage not in text:
+    raise RuntimeError("No se encontró storageKey.")
+text = text.replace(anchor_storage, insert_storage, 1)
 
-  fillSelect(activeSelect);
-  fillSelect(browseSelect);
-  activeSelect.value = currentActiveRoute;
-  browseSelect.value = routeNames[0];
-
-  (function populateDatalist(){
-    const set = new Set();
-    routeNames.forEach(r=> baseRoutes[r].forEach(n=> set.add(n)));
-    allClientsDL.innerHTML = '';
-    for (const n of set){
-      const o = document.createElement('option');
-      o.value = n;
-      allClientsDL.appendChild(o);
-    }
-  })();
-
-  function refreshHints(){
-    const hist = JSON.parse(localStorage.getItem('recentAdds')||'[]');
-    hints.innerHTML = '';
-    hist.forEach(n=>{
-      const c = document.createElement('button');
-      c.className = 'chip';
-      c.textContent = '+ '+n;
-      c.type = 'button';
-      c.addEventListener('click', ()=>{ addToActive([n]); });
-      hints.appendChild(c);
-    });
-  }
-  refreshHints();
-
-  function pushRecent(name){
-    const hist = JSON.parse(localStorage.getItem('recentAdds')||'[]');
-    const arr = [name, ...hist.filter(x=>x!==name)].slice(0,5);
-    localStorage.setItem('recentAdds', JSON.stringify(arr));
-    refreshHints();
-  }
-
-  function removeFromRecent(name){
-    const hist = JSON.parse(localStorage.getItem('recentAdds')||'[]');
-    const arr = hist.filter(x=>x!==name);
-    localStorage.setItem('recentAdds', JSON.stringify(arr));
-    refreshHints();
-  }
-
-  // ======= RENDER RUTAS =======
-  function renderActive(){
-    ensureState(currentActiveRoute);
-    const list = routeStates[currentActiveRoute];
-    activeListEl.innerHTML = '';
-
-    list.forEach((item, idx)=>{
-      if (currentFilter === 'pending' && item.visited) return;
-      if (currentFilter === 'visited' && !item.visited) return;
-
-      const li = document.createElement('li');
-      li.className='item';
-      li.dataset.index = idx;
-      li.classList.toggle('visited', !!item.visited);
-      li.classList.toggle('has-notes', hasObservations(item));
-
-      const cb = document.createElement('input');
-      cb.type='checkbox';
-      cb.className='check';
-      cb.checked=!!item.visited;
-      cb.title = 'Marcar visita';
-      cb.addEventListener('change', ()=>{
+# Al marcar visita: fijar fecha de la ruta en el día real de la primera visita
+old_checkbox = """      cb.addEventListener('change', ()=>{
         item.visited = cb.checked;
         if (item.visited && !item.visitedAt){
           item.visitedAt = getNowTimeStr();
@@ -938,70 +266,51 @@
         }
         saveRouteState(currentActiveRoute);
         renderActive();
-        updateActiveSummary();
-        updateGlobalStats();
-      });
+"""
+new_checkbox = """      cb.addEventListener('change', ()=>{
+        item.visited = cb.checked;
 
-      const num = document.createElement('span');
-      num.className = 'num';
-      num.textContent = (idx + 1) + '.';
+        if (item.visited){
+          ensureRouteDateFromFirstVisit();
+          if (!item.visitedAt){
+            item.visitedAt = getNowTimeStr();
+          }
+        }
 
-      const visitMain = document.createElement('div');
-      visitMain.className = 'visit-main';
+        if (!item.visited){
+          item.visitedAt = '';
+        }
 
-      const visitHead = document.createElement('div');
-      visitHead.className = 'visit-head';
+        saveRouteState(currentActiveRoute);
+        clearRouteDateIfNoVisits();
+        renderActive();
+"""
+if old_checkbox not in text:
+    raise RuntimeError("No se encontró el evento de visita.")
+text = text.replace(old_checkbox, new_checkbox, 1)
 
-      const name = document.createElement('div');
-      name.className='name';
-      name.textContent=item.name;
+# Check para guardar/cerrar observaciones
+old_obs = """      const help = document.createElement('p');
+      help.className = 'obs-help';
+      help.textContent = 'Máximo 300 caracteres. Si escribes algo, la visita queda marcada en amarillo.';
 
-      const visitTools = document.createElement('div');
-      visitTools.className = 'visit-tools';
+      panel.append(textarea, help);
+      details.append(summary, panel);
+"""
+new_obs = """      const help = document.createElement('p');
+      help.className = 'obs-help';
+      help.textContent = 'Máximo 300 caracteres. Si escribes algo, la visita queda marcada en amarillo.';
 
-      if (item.visited){
-        const timeWrap = document.createElement('label');
-        timeWrap.className = 'time-wrap';
-        timeWrap.textContent = 'Hora';
+      const obsActions = document.createElement('div');
+      obsActions.className = 'panel-actions';
 
-        const timeInput = document.createElement('input');
-        timeInput.type = 'time';
-        timeInput.className = 'visit-time';
-        timeInput.value = item.visitedAt || getNowTimeStr();
-        timeInput.addEventListener('change', ()=>{
-          item.visitedAt = timeInput.value || '';
-          saveRouteState(currentActiveRoute);
-          updateGlobalStats();
-        });
-        timeWrap.appendChild(timeInput);
-        visitTools.appendChild(timeWrap);
-      }
-
-      const noteBadge = document.createElement('span');
-      noteBadge.className = 'note-badge';
-      noteBadge.textContent = 'Obs.';
-      noteBadge.style.display = hasObservations(item) ? 'inline-flex' : 'none';
-      visitTools.appendChild(noteBadge);
-
-      visitHead.append(name, visitTools);
-
-      const details = document.createElement('details');
-      details.className = 'obs-details';
-      if (hasObservations(item)) details.open = false;
-
-      const summary = document.createElement('summary');
-      summary.textContent = hasObservations(item) ? 'Observaciones escritas' : 'Observaciones';
-
-      const panel = document.createElement('div');
-      panel.className = 'obs-panel';
-
-      const textarea = document.createElement('textarea');
-      textarea.className = 'obs-box';
-      textarea.rows = 2;
-      textarea.maxLength = 300;
-      textarea.placeholder = 'Ej: pedido, incidencia, cobrar, volver otro día…';
-      textarea.value = item.observations || '';
-      textarea.addEventListener('input', ()=>{
+      const obsDone = document.createElement('button');
+      obsDone.className = 'btn panel-check';
+      obsDone.type = 'button';
+      obsDone.title = 'Guardar y cerrar observaciones';
+      obsDone.setAttribute('aria-label', 'Guardar y cerrar observaciones');
+      obsDone.textContent = '✓';
+      obsDone.addEventListener('click', ()=>{
         item.observations = textarea.value;
         saveRouteState(currentActiveRoute);
 
@@ -1011,744 +320,46 @@
         summary.textContent = has ? 'Observaciones escritas' : 'Observaciones';
         updateActiveSummary();
         updateGlobalStats();
+
+        textarea.blur();
+        details.open = false;
       });
 
-      const help = document.createElement('p');
-      help.className = 'obs-help';
-      help.textContent = 'Máximo 300 caracteres. Si escribes algo, la visita queda marcada en amarillo.';
-
-      panel.append(textarea, help);
+      obsActions.appendChild(obsDone);
+      panel.append(textarea, help, obsActions);
       details.append(summary, panel);
-
-      visitMain.append(visitHead, details);
-
-      const handle = document.createElement('button');
-      handle.className='handle btn ghost shrink';
-      handle.title='Arrastrar para reordenar';
-      handle.type = 'button';
-      handle.textContent='';
-      makeDraggable(li, handle, list);
-
-      const del = document.createElement('button');
-      del.className='del';
-      del.title='Eliminar';
-      del.textContent='–';
-      del.type = 'button';
-      del.addEventListener('click', ()=>{
-        const nameToRemove = item.name;
-        list.splice(idx,1);
-        saveRouteState(currentActiveRoute);
-        renderActive();
-        removeFromRecent(nameToRemove);
-        updateActiveSummary();
-        updateGlobalStats();
-      });
-
-      li.append(cb, num, visitMain, handle, del);
-      activeListEl.appendChild(li);
-    });
-
-    activeListEl.parentElement.classList.toggle('edit-mode', editMode);
-    updateActiveSummary();
-  }
-
-  function renderBrowse(){
-    const r = browseSelect.value;
-    const names = baseRoutes[r];
-    browseListEl.innerHTML = '';
-    names.forEach((n)=>{
-      const li = document.createElement('li');
-      li.className='item';
-      const cb = document.createElement('input');
-      cb.type='checkbox';
-      cb.className='check';
-      cb.dataset.name = n;
-      cb.addEventListener('change', updateSelectionBar);
-      const name = document.createElement('div');
-      name.className='name';
-      name.textContent = n;
-      li.append(cb, name);
-      browseListEl.appendChild(li);
-    });
-    updateSelectionBar();
-  }
-
-  // ======= DRAG & DROP (solo en filtro "Todos") =======
-  btnEdit.addEventListener('click', ()=>{
-    editMode = !editMode;
-    btnEdit.textContent = editMode ? 'Listo' : 'Editar';
-    activeListEl.parentElement.classList.toggle('edit-mode', editMode);
-  });
-
-  function makeDraggable(li, handle, list){
-    let dragging = false;
-    let startY = 0;
-    let startTop = 0;
-    let placeholder = null;
-    let snapshot = null; // copia del array antes de mover
-
-    function getClientY(e){
-      if (e.touches && e.touches.length){
-        return e.touches[0].clientY;
-      }
-      return e.clientY ?? 0;
-    }
-
-    function onPointerDown(e){
-      // Solo permitimos arrastrar cuando el filtro es "Todos"
-      if (currentFilter !== 'all') return;
-
-      e.preventDefault();
-      dragging = true;
-      startY = getClientY(e);
-      const rect = li.getBoundingClientRect();
-      startTop = li.offsetTop;
-
-      snapshot = (routeStates[currentActiveRoute] || []).slice();
-
-      li.classList.add('dragging');
-      li.style.position='absolute';
-      li.style.left='0';
-      li.style.right='0';
-      li.style.width='100%';
-      li.style.top = startTop + 'px';
-      li.style.pointerEvents='none';
-
-      placeholder = document.createElement('div');
-      placeholder.className='placeholder';
-      placeholder.style.height = rect.height + 'px';
-      activeListEl.insertBefore(placeholder, li.nextSibling);
-
-      window.addEventListener('pointermove', onPointerMove);
-      window.addEventListener('pointerup', onPointerUp, {once:true});
-      window.addEventListener('touchmove', onPointerMove, {passive:false});
-      window.addEventListener('touchend', onPointerUp, {once:true});
-    }
-
-    function onPointerMove(e){
-      if (!dragging) return;
-      const y = getClientY(e);
-      const dy = y - startY;
-      li.style.top = (startTop + dy) + 'px';
-      e.preventDefault();
-
-      const rect = li.getBoundingClientRect();
-      const centerY = rect.top + rect.height / 2;
-
-      const siblings = [...activeListEl.children].filter(el => el !== li && el !== placeholder);
-      let placed = false;
-      for (const el of siblings){
-        const r = el.getBoundingClientRect();
-        const mid = r.top + r.height / 2;
-        if (centerY < mid){
-          activeListEl.insertBefore(placeholder, el);
-          placed = true;
-          break;
-        }
-      }
-      if (!placed){
-        activeListEl.appendChild(placeholder);
-      }
-    }
-
-    function onPointerUp(){
-      if (!dragging) return;
-      dragging = false;
-
-      // Colocamos el <li> en el sitio del placeholder
-      activeListEl.insertBefore(li, placeholder);
-      placeholder.remove();
-      li.classList.remove('dragging');
-      li.style.cssText='';
-
-      if (snapshot){
-        const domItems = $$('.item', activeListEl);
-        const newList = domItems.map(el => snapshot[Number(el.dataset.index)]);
-        routeStates[currentActiveRoute] = newList;
-        saveRouteState(currentActiveRoute);
-        renderActive();
-        updateGlobalStats();
-      }
-
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('touchmove', onPointerMove);
-      // pointerup/touchend tienen {once:true}, se limpian solos
-    }
-
-    handle.addEventListener('pointerdown', onPointerDown);
-    handle.addEventListener('touchstart', onPointerDown, {passive:false});
-  }
-
-  // ======= OPERACIONES RUTA ACTIVA =======
-  function addToActive(names){
-    ensureState(currentActiveRoute);
-    const list = routeStates[currentActiveRoute];
-    const existing = new Set(list.map(x=>x.name));
-    let added = 0;
-    names.forEach(n=>{
-      if (!existing.has(n)){
-        list.push(normalizeItem({name:n, visited:false, visitedAt:'', observations:''}));
-        existing.add(n);
-        added++;
-        pushRecent(n);
-      }
-    });
-    if (added>0){
-      saveRouteState(currentActiveRoute);
-      renderActive();
-      updateGlobalStats();
-    }
-  }
-
-  function updateSelectionBar(){
-    const selected = $$('input.check:checked', browseListEl).map(cb=>cb.dataset.name);
-    btnAddSelected.disabled = selected.length===0;
-    btnAddSelected.textContent = `+ (${selected.length})`;
-    btnAddBar.textContent = `Añadir ${selected.length} seleccionados a la activa`;
-    addBar.classList.toggle('show', selected.length>0);
-  }
-
-  // ======= BUSCADOR =======
-  function renderSearchResults(){
-    const q = searchInput.value.trim().toLowerCase();
-    searchResults.innerHTML = '';
-    if (q.length < 2) return;
-
-    const results = [];
-    routeNames.forEach(route=>{
-      baseRoutes[route].forEach((name, idx)=>{
-        if (name.toLowerCase().includes(q)){
-          results.push({route, name, index:idx});
-        }
-      });
-    });
-
-    if (!results.length){
-      const li = document.createElement('li');
-      li.className = 'item';
-      li.textContent = 'Sin coincidencias.';
-      searchResults.appendChild(li);
-      return;
-    }
-
-    results.slice(0,50).forEach(res=>{
-      const li = document.createElement('li');
-      li.className = 'item';
-
-      const desc = document.createElement('div');
-      desc.className = 'name';
-      desc.textContent = `${res.name} — ${res.route} (#${res.index+1})`;
-
-      const btn = document.createElement('button');
-      btn.className = 'btn ghost shrink';
-      btn.type = 'button';
-      btn.textContent = 'Añadir a activa';
-      btn.addEventListener('click', ()=>{
-        addToActive([res.name]);
-      });
-
-      li.append(desc, btn);
-      searchResults.appendChild(li);
-    });
-  }
-
-  // ======= HISTORIAL (REGISTRO) =======
-  const HISTORY_KEY = 'route_history_v1';
-  const ARCHIVE_KEY = 'route_archives_monthly_v1';
-
-  function loadHistory(){
-    try{ return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]') || []; }
-    catch{ return []; }
-  }
-  function saveHistory(arr){
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(arr || []));
-  }
-
-  function loadArchives(){
-    try{ return JSON.parse(localStorage.getItem(ARCHIVE_KEY) || '[]') || []; }
-    catch{ return []; }
-  }
-  function saveArchives(arr){
-    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(arr || []));
-  }
-
-  function sortHistory(records){
-    return records.slice().sort((a,b)=>{
-      const da = (a.workDate || '');
-      const db = (b.workDate || '');
-      if (da !== db) return db.localeCompare(da);
-      const sa = (a.savedAt || '');
-      const sb = (b.savedAt || '');
-      return sb.localeCompare(sa);
-    });
-  }
-
-  function computeNextSeq(records, workDate, routeName){
-    const same = records.filter(r => r.workDate === workDate && r.routeName === routeName);
-    const maxSeq = same.reduce((m,r)=> Math.max(m, Number(r.seq||1)), 0);
-    return maxSeq + 1;
-  }
-
-  function recordLabel(r){
-    const base = `${r.workDate} — ${r.routeName}${(r.seq && r.seq>1) ? ` (${r.seq})` : ''}`;
-    const extra = (r.title && r.title.trim()) ? ` · ${r.title.trim()}` : '';
-    return base + extra;
-  }
-
-  function refreshMonthUI(){
-    const records = loadHistory();
-    const months = [...new Set(records
-      .map(r => (r.workDate||'').slice(0,7))
-      .filter(m => /^\d{4}-\d{2}$/.test(m))
-    )].sort((a,b)=> b.localeCompare(a));
-
-    monthSelect.innerHTML = '';
-    if (!months.length){
-      const opt = document.createElement('option');
-      opt.value = '';
-      opt.textContent = '— Sin meses —';
-      monthSelect.appendChild(opt);
-      monthSelect.disabled = true;
-      btnArchiveMonth.disabled = true;
-      monthSummary.textContent = 'No hay registros para archivar.';
-      return;
-    }
-
-    monthSelect.disabled = false;
-    btnArchiveMonth.disabled = false;
-
-    months.forEach(m=>{
-      const opt = document.createElement('option');
-      opt.value = m;
-      opt.textContent = m;
-      monthSelect.appendChild(opt);
-    });
-
-    updateMonthSummary();
-  }
-
-  function updateMonthSummary(){
-    const m = monthSelect.value;
-    if (!m){
-      monthSummary.textContent = 'Selecciona un mes.';
-      return;
-    }
-    const records = loadHistory().filter(r => (r.workDate||'').startsWith(m + '-'));
-    monthSummary.textContent = `Mes ${m}: ${records.length} registro(s) listos para archivar.`;
-  }
-
-  monthSelect.addEventListener('change', updateMonthSummary);
-
-  function refreshHistoryUI(){
-    const records = sortHistory(loadHistory());
-    historySelect.innerHTML = '';
-
-    if (!records.length){
-      const opt = document.createElement('option');
-      opt.value = '';
-      opt.textContent = '— Sin registros —';
-      historySelect.appendChild(opt);
-      historySelect.disabled = true;
-    } else {
-      historySelect.disabled = false;
-      records.forEach(r=>{
-        const opt = document.createElement('option');
-        opt.value = r.id;
-        opt.textContent = recordLabel(r);
-        historySelect.appendChild(opt);
-      });
-    }
-
-    historyEditPanel.style.display = 'none';
-    renderHistoryPreview();
-    refreshMonthUI();
-  }
-
-  function getSelectedRecord(){
-    const id = historySelect.value;
-    if (!id) return null;
-    return loadHistory().find(r=>r.id===id) || null;
-  }
-
-  function renderHistoryPreview(){
-    const rec = getSelectedRecord();
-    historyPreview.innerHTML = '';
-
-    if (!rec){
-      historyMeta.textContent = 'Selecciona un registro para ver detalles.';
-      return;
-    }
-
-    const items = (rec.items || []).map(normalizeItem);
-    const total = items.length;
-    const visited = items.filter(i=>i.visited).length;
-    const pending = total - visited;
-    const obsCount = items.filter(hasObservations).length;
-
-    const savedAt = rec.savedAt ? new Date(rec.savedAt).toLocaleString('es-ES') : '—';
-    const note = rec.note ? `Nota general: ${rec.note}` : '';
-    const title = rec.title ? `Nombre: ${rec.title}` : '';
-
-    historyMeta.textContent =
-      `Trabajo: ${formatES(rec.workDate)} · Guardado: ${savedAt} · ${visited}/${total} visitados (pendientes: ${pending}) · observaciones: ${obsCount}` +
-      (title ? ` · ${title}` : '') +
-      (note ? ` · ${note}` : '');
-
-    items.forEach((it, idx)=>{
-      const li = document.createElement('li');
-      li.className = 'item';
-      li.classList.toggle('has-notes', hasObservations(it));
-
-      const left = document.createElement('div');
-      left.className = 'name';
-      left.innerHTML = `<div>${idx+1}. ${it.visited ? '✓' : '•'} ${escapeHtml(it.name)}</div>`;
-
-      const mini = document.createElement('div');
-      mini.className = 'mini';
-      mini.textContent = it.visited ? `Visitado${it.visitedAt ? ' · Hora: ' + it.visitedAt : ''}` : 'Pendiente';
-      left.appendChild(mini);
-
-      if (hasObservations(it)){
-        const obs = document.createElement('div');
-        obs.className = 'obs-display';
-        obs.textContent = `Obs.: ${it.observations.trim()}`;
-        left.appendChild(obs);
-      }
-
-      li.appendChild(left);
-      historyPreview.appendChild(li);
-    });
-  }
-
-  historySelect.addEventListener('change', ()=>{
-    historyEditPanel.style.display = 'none';
-    renderHistoryPreview();
-  });
-
-  function snapshotActiveRoute(workDateStr){
-    ensureState(currentActiveRoute);
-    const list = routeStates[currentActiveRoute] || [];
-    if (!list.length) return null;
-
-    const records = loadHistory();
-    const seq = computeNextSeq(records, workDateStr, currentActiveRoute);
-
-    const rec = {
-      id: uid(),
-      routeName: currentActiveRoute,
-      workDate: workDateStr,
-      savedAt: new Date().toISOString(),
-      seq,
-      title: '',
-      note: '',
-      items: list.map(x=>{
-        const it = normalizeItem(x);
-        return {
-          name: it.name,
-          visited: !!it.visited,
-          visitedAt: it.visitedAt || '',
-          observations: it.observations || ''
-        };
-      })
-    };
-
-    records.push(rec);
-    saveHistory(records);
-    return rec;
-  }
-
-  function buildTextFromRecord(rec){
-    const dateStr = formatES(rec.workDate);
-    let text = `Ruta ${rec.routeName} – ${dateStr}`;
-    if (rec.seq && rec.seq>1) text += ` (${rec.seq})`;
-    if (rec.title && rec.title.trim()) text += ` · ${rec.title.trim()}`;
-    text += `\n`;
-    (rec.items||[]).map(normalizeItem).forEach((item, idx)=>{
-      const mark = item.visited ? '✓' : '•';
-      const time = item.visited && item.visitedAt ? ` [${item.visitedAt}]` : '';
-      text += `${idx+1}. ${mark}${time} ${item.name}\n`;
-      if (hasObservations(item)){
-        text += `   Obs.: ${item.observations.trim()}\n`;
-      }
-    });
-    if (rec.note && rec.note.trim()){
-      text += `\nNota general: ${rec.note.trim()}\n`;
-    }
-    return text;
-  }
-
-  btnHistoryView.addEventListener('click', renderHistoryPreview);
-
-  btnHistoryLoad.addEventListener('click', ()=>{
-    const rec = getSelectedRecord();
-    if (!rec) return;
-
-    setActiveRouteName(rec.routeName);
-    activeSelect.value = rec.routeName;
-    updateActiveRouteLabel();
-
-    routeStates[currentActiveRoute] = (rec.items || []).map(normalizeItem);
-    saveRouteState(currentActiveRoute);
-
-    editMode = false;
-    btnEdit.textContent = 'Editar';
-    currentFilter = 'all';
-    filterButtons.forEach(b=> b.classList.toggle('active', b.dataset.filter==='all'));
-
-    renderActive();
-    updateGlobalStats();
-    alert('Registro cargado en la ruta activa.');
-  });
-
-  btnHistoryEdit.addEventListener('click', ()=>{
-    const rec = getSelectedRecord();
-    if (!rec) return;
-
-    historyEditDate.value = rec.workDate || getTodayStr();
-    historyEditTitle.value = rec.title || '';
-    historyEditNote.value = rec.note || '';
-    historyEditPanel.style.display = 'block';
-  });
-
-  btnHistoryEditCancel.addEventListener('click', ()=>{
-    historyEditPanel.style.display = 'none';
-  });
-
-  btnHistoryEditSave.addEventListener('click', ()=>{
-    const rec = getSelectedRecord();
-    if (!rec) return;
-
-    const records = loadHistory();
-    const idx = records.findIndex(r=>r.id===rec.id);
-    if (idx<0) return;
-
-    const newDate = historyEditDate.value || rec.workDate;
-    records[idx].workDate = newDate;
-    records[idx].title = (historyEditTitle.value || '').trim();
-    records[idx].note = (historyEditNote.value || '').trim();
-
-    saveHistory(records);
-    historyEditPanel.style.display = 'none';
-
-    refreshHistoryUI();
-    historySelect.value = rec.id;
-    renderHistoryPreview();
-    alert('Registro actualizado.');
-  });
-
-  btnHistoryDelete.addEventListener('click', ()=>{
-    const rec = getSelectedRecord();
-    if (!rec) return;
-    if (!confirm(`¿Eliminar este registro?\n\n${recordLabel(rec)}`)) return;
-
-    const records = loadHistory().filter(r=>r.id!==rec.id);
-    saveHistory(records);
-    refreshHistoryUI();
-  });
-
-  btnHistoryExportText.addEventListener('click', ()=>{
-    const rec = getSelectedRecord();
-    if (!rec) return;
-
-    const text = buildTextFromRecord(rec);
-    if (navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(()=>{
-        alert('Texto exportado al portapapeles. Las observaciones con contenido van incluidas.');
-      }).catch(()=>{
-        alert('No se pudo copiar automáticamente. Este es el texto:\n\n'+text);
-      });
-    } else {
-      alert('Copia este texto:\n\n'+text);
-    }
-  });
-
-  btnHistoryExportJson.addEventListener('click', ()=>{
-    const rec = getSelectedRecord();
-    if (!rec) return;
-
-    const file = `ruta_${rec.workDate}_${keyFor(rec.routeName)}.json`;
-    downloadJSON(file, {type:'route_record', version:2, record:rec});
-  });
-
-  btnHistoryExportAll.addEventListener('click', ()=>{
-    const records = loadHistory();
-    const archives = loadArchives();
-    const file = `rutas_backup_${getTodayStr()}.json`;
-    downloadJSON(file, {
-      type:'routes_backup',
-      version:2,
-      exportedAt:new Date().toISOString(),
-      records,
-      archives
-    });
-  });
-
-  btnHistoryImport.addEventListener('click', ()=>{
-    historyImportFile.value = '';
-    historyImportFile.click();
-  });
-
-  historyImportFile.addEventListener('change', async ()=>{
-    const file = historyImportFile.files?.[0];
-    if (!file) return;
-
-    let json = null;
-    try{
-      const text = await file.text();
-      json = JSON.parse(text);
-    }catch{
-      alert('No pude leer el JSON. ¿Seguro que es un archivo válido?');
-      return;
-    }
-
-    const existingRecords = loadHistory();
-    const existingIds = new Set(existingRecords.map(r=>r.id));
-    const existingArchives = loadArchives();
-    const existingArchiveIds = new Set(existingArchives.map(a=>a.id));
-
-    function safeRecordId(r){
-      let id = r.id || uid();
-      while (existingIds.has(id)) id = uid();
-      existingIds.add(id);
-      return id;
-    }
-
-    function safeArchiveId(a){
-      let id = a.id || uid();
-      while (existingArchiveIds.has(id)) id = uid();
-      existingArchiveIds.add(id);
-      return id;
-    }
-
-    function normalizeRecord(r){
-      return {
-        id: safeRecordId(r),
-        routeName: r.routeName || 'Ruta 1',
-        workDate: r.workDate || getTodayStr(),
-        savedAt: r.savedAt || new Date().toISOString(),
-        seq: Number(r.seq || 1),
-        title: (r.title || '').toString(),
-        note: (r.note || '').toString(),
-        items: Array.isArray(r.items) ? r.items.map(normalizeItem).filter(i=>i.name) : []
-      };
-    }
-
-    function normalizeArchive(a){
-      const month = (a.month || '').toString();
-      return {
-        id: safeArchiveId(a),
-        month: /^\d{4}-\d{2}$/.test(month) ? month : (getTodayStr().slice(0,7)),
-        createdAt: a.createdAt || new Date().toISOString(),
-        records: Array.isArray(a.records) ? a.records.map(normalizeRecord) : []
-      };
-    }
-
-    try{
-      if (json && json.type === 'route_record' && json.record){
-        existingRecords.push(normalizeRecord(json.record));
-        saveHistory(existingRecords);
-        alert('Registro importado.');
-      } else if (json && json.type === 'archive_month' && json.archive){
-        existingArchives.push(normalizeArchive(json.archive));
-        saveArchives(existingArchives);
-        alert('Archivo mensual importado.');
-      } else if (json && json.type === 'routes_backup'){
-        const recs = Array.isArray(json.records) ? json.records : [];
-        const arcs = Array.isArray(json.archives) ? json.archives : [];
-        recs.forEach(r => existingRecords.push(normalizeRecord(r)));
-        arcs.forEach(a => existingArchives.push(normalizeArchive(a)));
-        saveHistory(existingRecords);
-        saveArchives(existingArchives);
-        alert('Backup importado.');
-      } else if (Array.isArray(json)) {
-        // por si alguien exportó solo array de records
-        json.forEach(r => existingRecords.push(normalizeRecord(r)));
-        saveHistory(existingRecords);
-        alert('Importación completada (lista).');
-      } else {
-        alert('JSON reconocido, pero no es un formato soportado.');
-      }
-    }catch(e){
-      alert('Error importando JSON.');
-    }
-
-    refreshHistoryUI();
-  });
-
-  btnArchiveMonth.addEventListener('click', ()=>{
-    const month = monthSelect.value;
-    if (!month) return;
-
-    const all = loadHistory();
-    const toArchive = all.filter(r => (r.workDate||'').startsWith(month + '-'));
-    if (!toArchive.length){
-      alert('No hay registros para ese mes.');
-      return;
-    }
-
-    if (!confirm(`Vas a archivar ${toArchive.length} registro(s) del mes ${month}.\n\nSe descargará un JSON y luego se limpiarán del historial diario.\n\n¿Continuar?`)){
-      return;
-    }
-
-    const archive = {
-      id: uid(),
-      month,
-      createdAt: new Date().toISOString(),
-      records: toArchive
-    };
-
-    // guardamos en "archivos mensuales"
-    const archives = loadArchives();
-    archives.push(archive);
-    saveArchives(archives);
-
-    // limpiamos del historial diario
-    const remaining = all.filter(r => !(r.workDate||'').startsWith(month + '-'));
-    saveHistory(remaining);
-
-    // descargamos el archivo mensual
-    downloadJSON(`rutas_${month}.json`, {type:'archive_month', version:2, archive});
-
-    refreshHistoryUI();
-    alert(`Archivado listo. Ahora solo te falta subir el archivo a Drive (arrastrar/soltar y a vivir).`);
-  });
-
-  // ======= EVENTOS UI =======
-  btnSetActive.addEventListener('click', ()=>{
+"""
+if old_obs not in text:
+    raise RuntimeError("No se encontró el panel de observaciones.")
+text = text.replace(old_obs, new_obs, 1)
+
+# Al cambiar ruta activa, recalcular fecha propuesta
+old_set_active = """  btnSetActive.addEventListener('click', ()=>{
     setActiveRouteName(activeSelect.value);
     updateActiveRouteLabel();
     renderActive();
     updateGlobalStats();
   });
-
-  browseSelect.addEventListener('change', renderBrowse);
-
-  btnAddSelected.addEventListener('click', ()=>{
-    const names = $$('input.check:checked', browseListEl).map(cb=>cb.dataset.name);
-    addToActive(names);
-    $$('input.check:checked', browseListEl).forEach(cb=> cb.checked=false);
-    updateSelectionBar();
+"""
+new_set_active = """  btnSetActive.addEventListener('click', ()=>{
+    setActiveRouteName(activeSelect.value);
+    updateActiveRouteLabel();
+    refreshRouteDate();
+    renderActive();
+    updateGlobalStats();
   });
+"""
+if old_set_active not in text:
+    raise RuntimeError("No se encontró btnSetActive.")
+text = text.replace(old_set_active, new_set_active, 1)
 
-  btnAddBar.addEventListener('click', ()=>{ btnAddSelected.click(); });
-
-  btnManualAdd.addEventListener('click', ()=>{
-    const n = (inputManual.value||'').trim();
-    if (!n) return;
-    addToActive([n]);
-    inputManual.value='';
-  });
-
-  inputManual.addEventListener('keydown', e=>{
-    if (e.key==='Enter') btnManualAdd.click();
-  });
-
-  // RESET: guarda automático (si hay clientes) SOLO si confirmas el reset.
+# Reemplazar el reset directo por apertura del panel de cierre
+old_reset = """  // RESET: guarda automático (si hay clientes) SOLO si confirmas el reset.
   btnReset.addEventListener('click', ()=>{
     ensureState(currentActiveRoute);
     const list = routeStates[currentActiveRoute] || [];
 
-    if (!confirm('Esto reseteará la ruta activa a su estado original y limpiará los checks.\n\nAntes de resetear se guardará un registro automático (si hay clientes), con horas y observaciones.\n\n¿Seguro?')) return;
+    if (!confirm('Esto reseteará la ruta activa a su estado original y limpiará los checks.\\n\\nAntes de resetear se guardará un registro automático (si hay clientes), con horas y observaciones.\\n\\n¿Seguro?')) return;
 
     // Guardado automático con fecha real (hoy). Editable luego en Historial.
     if (list.length){
@@ -1761,37 +372,65 @@
     renderActive();
     updateGlobalStats();
   });
+"""
+new_reset = """  // RESET: primero pide confirmar la fecha real de la ruta.
+  btnReset.addEventListener('click', ()=>{
+    ensureState(currentActiveRoute);
 
-  btnCopy.addEventListener('click', ()=>{
+    const proposedDate =
+      getRouteWorkDate(currentActiveRoute) ||
+      dateSelect.value ||
+      getTodayStr();
+
+    finishDate.value = proposedDate;
+    finishOverlay.classList.add('show');
+    setTimeout(()=> finishDate.focus(), 0);
+  });
+
+  btnFinishCancel.addEventListener('click', ()=>{
+    finishOverlay.classList.remove('show');
+  });
+
+  btnFinishConfirm.addEventListener('click', ()=>{
     ensureState(currentActiveRoute);
     const list = routeStates[currentActiveRoute] || [];
-    const [y,m,d] = currentDate.split('-');
-    const dateObj = new Date(Number(y), Number(m)-1, Number(d));
-    const dateStr = dateObj.toLocaleDateString('es-ES');
+    const confirmedDate = finishDate.value || getTodayStr();
 
-    let text = `Ruta ${currentActiveRoute} – ${dateStr}\n`;
-    list.forEach((raw, idx)=>{
-      const item = normalizeItem(raw);
-      const mark = item.visited ? '✓' : '•';
-      const time = item.visited && item.visitedAt ? ` [${item.visitedAt}]` : '';
-      text += `${idx+1}. ${mark}${time} ${item.name}\n`;
-      if (hasObservations(item)){
-        text += `   Obs.: ${item.observations.trim()}\n`;
-      }
-    });
+    if (list.length){
+      snapshotActiveRoute(confirmedDate);
+      refreshHistoryUI();
+    }
 
-    if (navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(()=>{
-        alert('Ruta copiada al portapapeles, con horas y observaciones.');
-      }).catch(()=>{
-        alert('No se pudo copiar automáticamente. Este es el texto:\n\n'+text);
-      });
-    } else {
-      alert('Copia este texto:\n\n'+text);
+    routeStates[currentActiveRoute] = baseRoutes[currentActiveRoute].map(n=>normalizeItem(n));
+    saveRouteState(currentActiveRoute);
+
+    setRouteWorkDate(currentActiveRoute, '');
+    currentDate = getTodayStr();
+    dateSelect.value = currentDate;
+
+    finishOverlay.classList.remove('show');
+    renderActive();
+    updateGlobalStats();
+  });
+
+  finishOverlay.addEventListener('click', (e)=>{
+    if (e.target === finishOverlay){
+      finishOverlay.classList.remove('show');
     }
   });
 
-  btnMarkAll.addEventListener('click', ()=>{
+  document.addEventListener('keydown', (e)=>{
+    if (e.key === 'Escape' && finishOverlay.classList.contains('show')){
+      finishOverlay.classList.remove('show');
+    }
+  });
+"""
+if old_reset not in text:
+    raise RuntimeError("No se encontró el bloque reset.")
+text = text.replace(old_reset, new_reset, 1)
+
+# Marcar todos fija fecha de ruta; limpiar todos la elimina
+old_mark_all = """  btnMarkAll.addEventListener('click', ()=>{
     ensureState(currentActiveRoute);
     const list = routeStates[currentActiveRoute] || [];
     const now = getNowTimeStr();
@@ -1803,8 +442,29 @@
     renderActive();
     updateGlobalStats();
   });
+"""
+new_mark_all = """  btnMarkAll.addEventListener('click', ()=>{
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute] || [];
+    const now = getNowTimeStr();
 
-  btnClearChecks.addEventListener('click', ()=>{
+    ensureRouteDateFromFirstVisit();
+
+    list.forEach(item=>{
+      item.visited = true;
+      if (!item.visitedAt) item.visitedAt = now;
+    });
+
+    saveRouteState(currentActiveRoute);
+    renderActive();
+    updateGlobalStats();
+  });
+"""
+if old_mark_all not in text:
+    raise RuntimeError("No se encontró marcar todos.")
+text = text.replace(old_mark_all, new_mark_all, 1)
+
+old_clear = """  btnClearChecks.addEventListener('click', ()=>{
     ensureState(currentActiveRoute);
     const list = routeStates[currentActiveRoute] || [];
     list.forEach(item=>{
@@ -1815,31 +475,83 @@
     renderActive();
     updateGlobalStats();
   });
+"""
+new_clear = """  btnClearChecks.addEventListener('click', ()=>{
+    ensureState(currentActiveRoute);
+    const list = routeStates[currentActiveRoute] || [];
+    list.forEach(item=>{
+      item.visited = false;
+      item.visitedAt = '';
+    });
+    saveRouteState(currentActiveRoute);
 
-  dateSelect.addEventListener('change', ()=>{
+    setRouteWorkDate(currentActiveRoute, '');
+    currentDate = getTodayStr();
+    dateSelect.value = currentDate;
+
+    renderActive();
+    updateGlobalStats();
+  });
+"""
+if old_clear not in text:
+    raise RuntimeError("No se encontró limpiar checks.")
+text = text.replace(old_clear, new_clear, 1)
+
+# Fecha superior: editable como propuesta/corrección, ya no usa currentDate global persistida
+old_date_listener = """  dateSelect.addEventListener('change', ()=>{
     currentDate = dateSelect.value || getTodayStr();
     localStorage.setItem('currentDate', currentDate);
     // Solo actualizamos texto que usa la fecha (copiar ruta),
     // el estado de la faena se mantiene tal cual.
   });
-
-  searchInput.addEventListener('input', renderSearchResults);
-
-  filterButtons.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      currentFilter = btn.dataset.filter;
-      filterButtons.forEach(b=> b.classList.toggle('active', b === btn));
-      renderActive();
-    });
+"""
+new_date_listener = """  dateSelect.addEventListener('change', ()=>{
+    currentDate = dateSelect.value || getTodayStr();
+    dateSelect.value = currentDate;
+    setRouteWorkDate(currentActiveRoute, currentDate);
+    // La fecha nunca borra ni cambia el contenido de la ruta.
+    // Solo sirve como propuesta y puede confirmarse al resetear.
   });
+"""
+if old_date_listener not in text:
+    raise RuntimeError("No se encontró el listener de fecha.")
+text = text.replace(old_date_listener, new_date_listener, 1)
 
-  // ======= INICIO =======
+# Al cargar un historial, conservar su fecha como propuesta de la ruta cargada
+old_history_load_tail = """    routeStates[currentActiveRoute] = (rec.items || []).map(normalizeItem);
+    saveRouteState(currentActiveRoute);
+
+    editMode = false;
+"""
+new_history_load_tail = """    routeStates[currentActiveRoute] = (rec.items || []).map(normalizeItem);
+    saveRouteState(currentActiveRoute);
+
+    setRouteWorkDate(currentActiveRoute, rec.workDate || getTodayStr());
+    currentDate = rec.workDate || getTodayStr();
+    dateSelect.value = currentDate;
+
+    editMode = false;
+"""
+if old_history_load_tail not in text:
+    raise RuntimeError("No se encontró la carga de historial.")
+text = text.replace(old_history_load_tail, new_history_load_tail, 1)
+
+# Inicio: calcular fecha propuesta antes de pintar
+old_start = """  // ======= INICIO =======
   updateActiveRouteLabel();
   filterButtons.find(b => b.dataset.filter === 'all').classList.add('active');
   renderActive();
-  renderBrowse();
-  updateGlobalStats();
-  refreshHistoryUI();
-  </script>
-</body>
-</html>
+"""
+new_start = """  // ======= INICIO =======
+  updateActiveRouteLabel();
+  refreshRouteDate();
+  filterButtons.find(b => b.dataset.filter === 'all').classList.add('active');
+  renderActive();
+"""
+if old_start not in text:
+    raise RuntimeError("No se encontró el inicio.")
+text = text.replace(old_start, new_start, 1)
+
+out.write_text(text, encoding="utf-8")
+print(f"Archivo creado: {out}")
+print(f"Tamaño: {out.stat().st_size} bytes")
